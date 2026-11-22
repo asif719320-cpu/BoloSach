@@ -144,6 +144,14 @@
           "minLength": 1,
           "maxLength": 60
         },
+        "sideAImageUrl": {
+          "type": "string",
+          "maxLength": 75000
+        },
+        "sideBImageUrl": {
+          "type": "string",
+          "maxLength": 75000
+        },
         "votesA": {
           "type": "integer"
         },

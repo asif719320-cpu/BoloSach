@@ -38,6 +38,14 @@ service cloud.firestore {
       return url is string && (url == '' || (url.size() <= 500 && url.matches('^https://.*')));
     }
 
+    function isValidSideImage(url) {
+      return url is string && (
+        url == '' ||
+        (url.size() <= 500 && url.matches('^https://.*')) ||
+        (url.size() <= 75000 && url.matches('^data:image/(jpeg|png|webp);base64,[A-Za-z0-9+/=]+$'))
+      );
+    }
+
     // =========================================================
     // Validation Blueprints (Anti-Update-Gap)
     // =========================================================
@@ -87,6 +95,7 @@ service cloud.firestore {
         && data.keys().hasOnly([
           'id', 'creatorId', 'creatorName', 'creatorHandle', 'creatorPhotoUrl',
           'type', 'category', 'title', 'sideALabel', 'sideBLabel',
+          'sideAImageUrl', 'sideBImageUrl',
           'votesA', 'votesB', 'responseCount', 'lastEventId', 'visibility', 'status',
           'lang', 'createdAt', 'updatedAt'
         ])
@@ -100,6 +109,8 @@ service cloud.firestore {
         && data.title is string && data.title.size() >= 3 && data.title.size() <= 140
         && data.sideALabel is string && data.sideALabel.size() >= 1 && data.sideALabel.size() <= 60
         && data.sideBLabel is string && data.sideBLabel.size() >= 1 && data.sideBLabel.size() <= 60
+        && (!('sideAImageUrl' in data) || isValidSideImage(data.sideAImageUrl))
+        && (!('sideBImageUrl' in data) || isValidSideImage(data.sideBImageUrl))
         && data.votesA is int && data.votesA >= 0
         && data.votesB is int && data.votesB >= 0
         && data.responseCount is int && data.responseCount >= 0

@@ -27,6 +27,7 @@ import {
   LIMITS,
   PublicProfile,
   sanitizeHttpsUrl,
+  sanitizeSideImage,
   SecretMoodTag,
   SecretResponse,
   VoteRecord,
@@ -215,6 +216,9 @@ export async function createChallenge(
     throw new Error('Both options must be filled.');
   }
 
+  const cleanSideAImage = input.type === 'secret_poll' ? '' : sanitizeSideImage(input.sideAImageUrl);
+  const cleanSideBImage = input.type === 'secret_poll' ? '' : sanitizeSideImage(input.sideBImageUrl);
+
   const challengeRef = doc(collection(db, 'challenges'));
   const profileRef = doc(db, 'profiles', user.uid);
   const batch = writeBatch(db);
@@ -230,6 +234,8 @@ export async function createChallenge(
     title: cleanTitle,
     sideALabel: cleanSideA,
     sideBLabel: cleanSideB,
+    sideAImageUrl: cleanSideAImage,
+    sideBImageUrl: cleanSideBImage,
     votesA: 0,
     votesB: 0,
     responseCount: 0,

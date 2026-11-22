@@ -18,7 +18,8 @@ import {
   getWhatsAppShareHref,
 } from '../lib/shareCardGenerator';
 import { castVote, getLocalVote } from '../services/bolosachService';
-import { Challenge, LangCode, sanitizeHttpsUrl } from '../types/bolosach';
+import { Challenge, LangCode, sanitizeHttpsUrl, sanitizeSideImage } from '../types/bolosach';
+import { PhotoDuelVote } from './PhotoDuelVote';
 
 interface BattleCardProps {
   challenge: Challenge;
@@ -66,6 +67,9 @@ export const BattleCard: React.FC<BattleCardProps> = ({
   const isClosed = challenge.status === 'closed';
   const isUrduText = challenge.lang === 'ur' || lang === 'ur';
   const safeAvatar = sanitizeHttpsUrl(challenge.creatorPhotoUrl);
+  const hasSidePhotos = Boolean(
+    sanitizeSideImage(challenge.sideAImageUrl) || sanitizeSideImage(challenge.sideBImageUrl)
+  );
   const artwork = CATEGORY_ARTWORK[challenge.category] ?? CATEGORY_ARTWORK.general;
 
   const handleVote = async (side: 'A' | 'B') => {
@@ -198,6 +202,17 @@ export const BattleCard: React.FC<BattleCardProps> = ({
               </span>
             </button>
           </div>
+        ) : hasSidePhotos ? (
+          <PhotoDuelVote
+            challenge={challenge}
+            votedSide={votedSide}
+            votingSide={votingSide}
+            isClosed={isClosed}
+            lang={lang}
+            t={t}
+            compact
+            onVote={(side) => void handleVote(side)}
+          />
         ) : (
           <div className="space-y-2.5 mb-4">
             {/* Side A */}

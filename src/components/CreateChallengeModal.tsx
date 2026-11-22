@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { User } from 'firebase/auth';
-import { Check, Copy, Flame, Lock, Share2, Users, X } from 'lucide-react';
+import { Check, Copy, Flame, ImagePlus, Lock, Share2, Users, X } from 'lucide-react';
 import { STARTER_TEMPLATES, Translations } from '../lib/i18n';
+import { compressSideImageFile } from '../lib/imageUpload';
 import { buildChallengeShareUrl, getWhatsAppShareHref } from '../lib/shareCardGenerator';
 import { createChallenge } from '../services/bolosachService';
 import {
@@ -50,6 +51,9 @@ export const CreateChallengeModal: React.FC<CreateChallengeModalProps> = ({
   const [title, setTitle] = useState('');
   const [sideALabel, setSideALabel] = useState('');
   const [sideBLabel, setSideBLabel] = useState('');
+  const [sideAImageUrl, setSideAImageUrl] = useState('');
+  const [sideBImageUrl, setSideBImageUrl] = useState('');
+  const [processingSide, setProcessingSide] = useState<'A' | 'B' | null>(null);
   const [visibility, setVisibility] = useState<ChallengeVisibility>('public');
   const [submitting, setSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
@@ -66,6 +70,26 @@ export const CreateChallengeModal: React.FC<CreateChallengeModalProps> = ({
   }, [isOpen, initialType]);
 
   if (!isOpen) return null;
+
+  const handlePhotoSelect = async (side: 'A' | 'B', e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = '';
+    if (!file) return;
+    setErrorMsg('');
+    setProcessingSide(side);
+    try {
+      const compressed = await compressSideImageFile(file);
+      if (side === 'A') {
+        setSideAImageUrl(compressed);
+      } else {
+        setSideBImageUrl(compressed);
+      }
+    } catch (err) {
+      setErrorMsg(err instanceof Error ? err.message : 'Unable to process photo.');
+    } finally {
+      setProcessingSide(null);
+    }
+  };
 
   const applyTemplate = (idx: number) => {
     const tpl = STARTER_TEMPLATES[idx];
@@ -96,6 +120,9 @@ export const CreateChallengeModal: React.FC<CreateChallengeModalProps> = ({
       return;
     }
 
+    const cleanAImg = type === 'secret_poll' ? '' : sideAImageUrl;
+    const cleanBImg = type === 'secret_poll' ? '' : sideBImageUrl;
+
     setSubmitting(true);
     try {
       const id = await createChallenge(currentUser, profile, {
@@ -104,6 +131,8 @@ export const CreateChallengeModal: React.FC<CreateChallengeModalProps> = ({
         title: cleanTitle,
         sideALabel: cleanA,
         sideBLabel: cleanB,
+        sideAImageUrl: cleanAImg,
+        sideBImageUrl: cleanBImg,
         visibility,
         lang,
       });
@@ -118,6 +147,8 @@ export const CreateChallengeModal: React.FC<CreateChallengeModalProps> = ({
         title: cleanTitle,
         sideALabel: cleanA,
         sideBLabel: cleanB,
+        sideAImageUrl: cleanAImg,
+        sideBImageUrl: cleanBImg,
         votesA: 0,
         votesB: 0,
         responseCount: 0,
@@ -131,6 +162,8 @@ export const CreateChallengeModal: React.FC<CreateChallengeModalProps> = ({
       setTitle('');
       setSideALabel('');
       setSideBLabel('');
+      setSideAImageUrl('');
+      setSideBImageUrl('');
     } catch (err) {
       setErrorMsg(err instanceof Error ? err.message : 'Unable to create challenge.');
     } finally {
@@ -325,37 +358,155 @@ export const CreateChallengeModal: React.FC<CreateChallengeModalProps> = ({
 
           {/* Side A & B for Battles and Friend Polls */}
           {type !== 'secret_poll' && (
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <div>
-                <label htmlFor="side-a-input" className="block text-xs font-semibold text-emerald-800 mb-1.5">
-                  {t.fieldSideA}
-                </label>
-                <input
-                  id="side-a-input"
-                  type="text"
-                  required
-                  maxLength={LIMITS.SIDE_MAX}
-                  value={sideALabel}
-                  onChange={(e) => setSideALabel(e.target.value)}
-                  placeholder="Option A"
-                  className="w-full min-h-[44px] rounded-xl border border-neutral-200 bg-neutral-50 px-3.5 text-sm text-neutral-950 focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:bg-white"
-                />
+            <div className="space-y-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label htmlFor="side-a-input" className="block text-xs font-semibold text-emerald-800 mb-1.5">
+                    {t.fieldSideA}
+                  </label>
+                  <input
+                    id="side-a-input"
+                    type="text"
+                    required
+                    maxLength={LIMITS.SIDE_MAX}
+                    value={sideALabel}
+                    onChange={(e) => setSideALabel(e.target.value)}
+                    placeholder={lang === 'ur' ? 'مثلاً علی / آپشن A' : 'e.g. Ali / Option A'}
+                    className="w-full min-h-[44px] rounded-xl border border-neutral-200 bg-neutral-50 px-3.5 text-sm text-neutral-950 focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:bg-white"
+                  />
+                </div>
+
+                <div>
+                  <label htmlFor="side-b-input" className="block text-xs font-semibold text-orange-800 mb-1.5">
+                    {t.fieldSideB}
+                  </label>
+                  <input
+                    id="side-b-input"
+                    type="text"
+                    required
+                    maxLength={LIMITS.SIDE_MAX}
+                    value={sideBLabel}
+                    onChange={(e) => setSideBLabel(e.target.value)}
+                    placeholder={lang === 'ur' ? 'مثلاً حمزہ / آپشن B' : 'e.g. Hamza / Option B'}
+                    className="w-full min-h-[44px] rounded-xl border border-neutral-200 bg-neutral-50 px-3.5 text-sm text-neutral-950 focus:outline-none focus:ring-2 focus:ring-orange-600 focus:bg-white"
+                  />
+                </div>
               </div>
 
-              <div>
-                <label htmlFor="side-b-input" className="block text-xs font-semibold text-orange-800 mb-1.5">
-                  {t.fieldSideB}
-                </label>
-                <input
-                  id="side-b-input"
-                  type="text"
-                  required
-                  maxLength={LIMITS.SIDE_MAX}
-                  value={sideBLabel}
-                  onChange={(e) => setSideBLabel(e.target.value)}
-                  placeholder="Option B"
-                  className="w-full min-h-[44px] rounded-xl border border-neutral-200 bg-neutral-50 px-3.5 text-sm text-neutral-950 focus:outline-none focus:ring-2 focus:ring-orange-600 focus:bg-white"
-                />
+              {/* Dual Photo Uploader for Option A vs Option B */}
+              <div className="rounded-2xl border border-neutral-200 bg-neutral-50/70 p-3.5">
+                <div className="mb-2.5">
+                  <p className="text-xs font-bold text-neutral-900">{t.sidePhotosTitle}</p>
+                  <p className="text-[11px] text-neutral-500 mt-0.5">{t.sidePhotosHint}</p>
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  {/* Photo A Slot */}
+                  <div className="relative">
+                    {sideAImageUrl ? (
+                      <div className="relative h-32 rounded-xl overflow-hidden border-2 border-emerald-600 bg-white">
+                        <img
+                          src={sideAImageUrl}
+                          alt={sideALabel || t.optionABadge}
+                          referrerPolicy="no-referrer"
+                          className="w-full h-full object-cover"
+                        />
+                        <span className="absolute top-1.5 left-1.5 px-2 py-0.5 rounded-lg bg-emerald-600 text-white text-[10px] font-extrabold">
+                          {t.optionABadge}
+                        </span>
+                        <div className="absolute inset-x-1.5 bottom-1.5 flex items-center justify-between gap-1.5">
+                          <label className="min-h-[28px] px-2.5 rounded-lg bg-black/75 hover:bg-black text-white text-[11px] font-semibold flex items-center justify-center cursor-pointer">
+                            {t.changePhoto}
+                            <input
+                              type="file"
+                              accept="image/*"
+                              className="hidden"
+                              onChange={(e) => void handlePhotoSelect('A', e)}
+                            />
+                          </label>
+                          <button
+                            type="button"
+                            onClick={() => setSideAImageUrl('')}
+                            aria-label={t.removePhoto}
+                            className="w-7 h-7 rounded-lg bg-black/75 hover:bg-red-600 text-white flex items-center justify-center cursor-pointer"
+                          >
+                            <X className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
+                      <label className="h-32 rounded-xl border-2 border-dashed border-emerald-300 hover:border-emerald-600 bg-white flex flex-col items-center justify-center gap-1.5 p-2 text-center cursor-pointer transition-colors">
+                        <ImagePlus className="w-5 h-5 text-emerald-600" />
+                        <span className="text-xs font-bold text-emerald-800">
+                          {processingSide === 'A' ? t.processingPhoto : t.uploadPhotoA}
+                        </span>
+                        <span className="text-[10px] text-neutral-500 truncate max-w-full">
+                          {sideALabel.trim() || t.optionABadge}
+                        </span>
+                        <input
+                          type="file"
+                          accept="image/*"
+                          disabled={processingSide !== null}
+                          className="hidden"
+                          onChange={(e) => void handlePhotoSelect('A', e)}
+                        />
+                      </label>
+                    )}
+                  </div>
+
+                  {/* Photo B Slot */}
+                  <div className="relative">
+                    {sideBImageUrl ? (
+                      <div className="relative h-32 rounded-xl overflow-hidden border-2 border-orange-600 bg-white">
+                        <img
+                          src={sideBImageUrl}
+                          alt={sideBLabel || t.optionBBadge}
+                          referrerPolicy="no-referrer"
+                          className="w-full h-full object-cover"
+                        />
+                        <span className="absolute top-1.5 left-1.5 px-2 py-0.5 rounded-lg bg-orange-600 text-white text-[10px] font-extrabold">
+                          {t.optionBBadge}
+                        </span>
+                        <div className="absolute inset-x-1.5 bottom-1.5 flex items-center justify-between gap-1.5">
+                          <label className="min-h-[28px] px-2.5 rounded-lg bg-black/75 hover:bg-black text-white text-[11px] font-semibold flex items-center justify-center cursor-pointer">
+                            {t.changePhoto}
+                            <input
+                              type="file"
+                              accept="image/*"
+                              className="hidden"
+                              onChange={(e) => void handlePhotoSelect('B', e)}
+                            />
+                          </label>
+                          <button
+                            type="button"
+                            onClick={() => setSideBImageUrl('')}
+                            aria-label={t.removePhoto}
+                            className="w-7 h-7 rounded-lg bg-black/75 hover:bg-red-600 text-white flex items-center justify-center cursor-pointer"
+                          >
+                            <X className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
+                      <label className="h-32 rounded-xl border-2 border-dashed border-orange-300 hover:border-orange-600 bg-white flex flex-col items-center justify-center gap-1.5 p-2 text-center cursor-pointer transition-colors">
+                        <ImagePlus className="w-5 h-5 text-orange-600" />
+                        <span className="text-xs font-bold text-orange-800">
+                          {processingSide === 'B' ? t.processingPhoto : t.uploadPhotoB}
+                        </span>
+                        <span className="text-[10px] text-neutral-500 truncate max-w-full">
+                          {sideBLabel.trim() || t.optionBBadge}
+                        </span>
+                        <input
+                          type="file"
+                          accept="image/*"
+                          disabled={processingSide !== null}
+                          className="hidden"
+                          onChange={(e) => void handlePhotoSelect('B', e)}
+                        />
+                      </label>
+                    )}
+                  </div>
+                </div>
               </div>
             </div>
           )}

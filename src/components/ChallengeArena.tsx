@@ -30,9 +30,11 @@ import {
   LangCode,
   LIMITS,
   sanitizeHttpsUrl,
+  sanitizeSideImage,
   SecretMoodTag,
   SecretResponse,
 } from '../types/bolosach';
+import { PhotoDuelVote } from './PhotoDuelVote';
 
 interface ChallengeArenaProps {
   challengeId: string;
@@ -154,6 +156,9 @@ export const ChallengeArena: React.FC<ChallengeArenaProps> = ({
   const isClosed = challenge.status === 'closed';
   const showViralCta = Boolean(votedSide || secretSent);
   const safeAvatar = sanitizeHttpsUrl(challenge.creatorPhotoUrl);
+  const hasSidePhotos = Boolean(
+    sanitizeSideImage(challenge.sideAImageUrl) || sanitizeSideImage(challenge.sideBImageUrl)
+  );
   const artwork = CATEGORY_ARTWORK[challenge.category] ?? CATEGORY_ARTWORK.general;
 
   const handleVote = async (side: 'A' | 'B') => {
@@ -275,6 +280,17 @@ export const ChallengeArena: React.FC<ChallengeArenaProps> = ({
           </h1>
 
           {challenge.type !== 'secret_poll' ? (
+            hasSidePhotos ? (
+              <PhotoDuelVote
+                challenge={challenge}
+                votedSide={votedSide}
+                votingSide={voting ? 'A' : null}
+                isClosed={isClosed}
+                lang={lang}
+                t={t}
+                onVote={(side) => void handleVote(side)}
+              />
+            ) : (
             <div className="space-y-3 mb-6">
               <button
                 type="button"
@@ -353,6 +369,7 @@ export const ChallengeArena: React.FC<ChallengeArenaProps> = ({
                 <span>{votedSide ? t.voteRecorded : t.oneClickHint}</span>
               </div>
             </div>
+            )
           ) : null}
 
           {/* Secret Poll Submission Box */}

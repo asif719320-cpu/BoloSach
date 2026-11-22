@@ -57,6 +57,15 @@ export interface Translations {
   fieldQuestion: string;
   fieldSideA: string;
   fieldSideB: string;
+  sidePhotosTitle: string;
+  sidePhotosHint: string;
+  uploadPhotoA: string;
+  uploadPhotoB: string;
+  changePhoto: string;
+  removePhoto: string;
+  processingPhoto: string;
+  optionABadge: string;
+  optionBBadge: string;
   fieldVisibility: string;
   visPublic: string;
   visUnlisted: string;
@@ -153,8 +162,17 @@ export const COPY: Record<LangCode, Translations> = {
     modeSecretPollDesc: 'Anonymous truths only you can read',
     fieldCategory: 'Topic',
     fieldQuestion: 'Your Question or Challenge',
-    fieldSideA: 'Side A (Emerald)',
-    fieldSideB: 'Side B (Coral)',
+    fieldSideA: 'Option A Name / Label',
+    fieldSideB: 'Option B Name / Label',
+    sidePhotosTitle: 'Option A vs Option B Photos (Optional)',
+    sidePhotosHint: 'Add photos of both people or options so friends can tap a picture to vote.',
+    uploadPhotoA: 'Add Photo A',
+    uploadPhotoB: 'Add Photo B',
+    changePhoto: 'Change',
+    removePhoto: 'Remove',
+    processingPhoto: 'Optimizing...',
+    optionABadge: 'Option A',
+    optionBBadge: 'Option B',
     fieldVisibility: 'Where should this appear?',
     visPublic: 'Public Feed + Link',
     visUnlisted: 'WhatsApp Link Only',
@@ -266,8 +284,17 @@ export const COPY: Record<LangCode, Translations> = {
     modeSecretPollDesc: 'خفیہ جوابات جو صرف آپ دیکھ سکیں',
     fieldCategory: 'موضوع',
     fieldQuestion: 'آپ کا سوال یا چیلنج',
-    fieldSideA: 'پہلا آپشن',
-    fieldSideB: 'دوسرا آپشن',
+    fieldSideA: 'آپشن A (پہلے بندے کا نام)',
+    fieldSideB: 'آپشن B (دوسرے بندے کا نام)',
+    sidePhotosTitle: 'آپشن A اور آپشن B کی تصاویر لگائیں (اختیاری)',
+    sidePhotosHint: 'دونوں بندوں یا آپشنز کی تصویر لگائیں تاکہ دوست تصویر دیکھ کر ووٹ دیں۔',
+    uploadPhotoA: 'تصویر A لگائیں',
+    uploadPhotoB: 'تصویر B لگائیں',
+    changePhoto: 'تبدیل کریں',
+    removePhoto: 'ہٹائیں',
+    processingPhoto: 'تیار ہو رہی ہے...',
+    optionABadge: 'آپشن A',
+    optionBBadge: 'آپشن B',
     fieldVisibility: 'یہ کہاں نظر آئے؟',
     visPublic: 'عوامی فیڈ + لنک',
     visUnlisted: 'صرف WhatsApp لنک',

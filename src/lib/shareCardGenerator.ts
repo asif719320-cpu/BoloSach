@@ -1,5 +1,5 @@
 import BACKDROP_URL from '../assets/images/battle_card_backdrop_1795351766501.jpg';
-import { Challenge, isValidFirestoreId, LangCode } from '../types/bolosach';
+import { Challenge, isValidFirestoreId, LangCode, sanitizeSideImage } from '../types/bolosach';
 
 export function buildChallengeShareUrl(challengeId: string): string {
   const origin = window.location.origin;
@@ -66,6 +66,22 @@ function wrapText(
   }
   ctx.fillText(line.trim(), x, currentY);
   return currentY + lineHeight;
+}
+
+async function loadOptionalImage(src: string): Promise<HTMLImageElement | null> {
+  if (!src) return null;
+  try {
+    const img = new Image();
+    img.crossOrigin = 'anonymous';
+    await new Promise<void>((resolve, reject) => {
+      img.onload = () => resolve();
+      img.onerror = () => reject(new Error('Image load failed'));
+      img.src = src;
+    });
+    return img;
+  } catch {
+    return null;
+  }
 }
 
 export async function downloadShareCardImage(challenge: Challenge): Promise<void> {
@@ -157,42 +173,128 @@ export async function downloadShareCardImage(challenge: Challenge): Promise<void
     ctx.font = '700 36px "JetBrains Mono", monospace';
     ctx.fillText(`${challenge.responseCount} truths received`, 240, boxY + 204);
   } else {
-    const barY = Math.max(afterTitleY + 72, 720);
-    // Side A
-    ctx.fillStyle = '#ECFDF5';
-    ctx.beginPath();
-    ctx.roundRect(176, barY, 1088, 148, 28);
-    ctx.fill();
-    ctx.fillStyle = '#A7F3D0';
-    ctx.beginPath();
-    ctx.roundRect(176, barY, Math.max(80, (1088 * pctA) / 100), 148, 28);
-    ctx.fill();
+    const safeImgA = sanitizeSideImage(challenge.sideAImageUrl);
+    const safeImgB = sanitizeSideImage(challenge.sideBImageUrl);
+    const hasSidePhotos = Boolean(safeImgA || safeImgB);
 
-    ctx.fillStyle = '#064E3B';
-    ctx.font = '700 42px "Plus Jakarta Sans", sans-serif';
-    ctx.fillText(challenge.sideALabel, 224, barY + 90);
-    ctx.font = '700 46px "JetBrains Mono", monospace';
-    ctx.textAlign = 'right';
-    ctx.fillText(`${pctA}%`, 1216, barY + 90);
-    ctx.textAlign = 'left';
+    if (hasSidePhotos) {
+      const [imgA, imgB] = await Promise.all([
+        loadOptionalImage(safeImgA),
+        loadOptionalImage(safeImgB),
+      ]);
+      const cardY = Math.max(afterTitleY + 42, 620);
+      const cardW = 508;
+      const photoSize = 370;
 
-    // Side B
-    ctx.fillStyle = '#FFF7ED';
-    ctx.beginPath();
-    ctx.roundRect(176, barY + 184, 1088, 148, 28);
-    ctx.fill();
-    ctx.fillStyle = '#FED7AA';
-    ctx.beginPath();
-    ctx.roundRect(176, barY + 184, Math.max(80, (1088 * pctB) / 100), 148, 28);
-    ctx.fill();
+      const drawSideCard = (
+        x: number,
+        img: HTMLImageElement | null,
+        label: string,
+        pct: number,
+        badge: 'A' | 'B',
+        accent: string,
+        softBg: string,
+        textDark: string
+      ) => {
+        ctx.fillStyle = softBg;
+        ctx.beginPath();
+        ctx.roundRect(x, cardY, cardW, 500, 32);
+        ctx.fill();
+        ctx.strokeStyle = accent;
+        ctx.lineWidth = 4;
+        ctx.stroke();
 
-    ctx.fillStyle = '#7C2D12';
-    ctx.font = '700 42px "Plus Jakarta Sans", sans-serif';
-    ctx.fillText(challenge.sideBLabel, 224, barY + 274);
-    ctx.font = '700 46px "JetBrains Mono", monospace';
-    ctx.textAlign = 'right';
-    ctx.fillText(`${pctB}%`, 1216, barY + 274);
-    ctx.textAlign = 'left';
+        const photoX = x + (cardW - photoSize) / 2;
+        const photoY = cardY + 28;
+        ctx.save();
+        ctx.beginPath();
+        ctx.roundRect(photoX, photoY, photoSize, photoSize, 24);
+        ctx.clip();
+        if (img) {
+          const minDim = Math.min(img.naturalWidth, img.naturalHeight);
+          const sx = Math.max(0, (img.naturalWidth - minDim) / 2);
+          const sy = Math.max(0, (img.naturalHeight - minDim) / 2);
+          ctx.drawImage(img, sx, sy, minDim, minDim, photoX, photoY, photoSize, photoSize);
+        } else {
+          ctx.fillStyle = '#FFFFFF';
+          ctx.fillRect(photoX, photoY, photoSize, photoSize);
+          ctx.fillStyle = accent;
+          ctx.font = '800 120px "Outfit", sans-serif';
+          ctx.textAlign = 'center';
+          ctx.fillText(label.trim().charAt(0).toUpperCase() || badge, photoX + photoSize / 2, photoY + 225);
+          ctx.textAlign = 'left';
+        }
+        ctx.restore();
+
+        ctx.fillStyle = accent;
+        ctx.beginPath();
+        ctx.roundRect(photoX + 14, photoY + 14, 52, 42, 12);
+        ctx.fill();
+        ctx.fillStyle = '#FFFFFF';
+        ctx.font = '800 26px "Outfit", sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText(badge, photoX + 40, photoY + 44);
+        ctx.textAlign = 'left';
+
+        ctx.fillStyle = textDark;
+        ctx.font = '700 34px "Plus Jakarta Sans", sans-serif';
+        ctx.fillText(label.slice(0, 18), x + 28, cardY + 455);
+        ctx.font = '800 38px "JetBrains Mono", monospace';
+        ctx.textAlign = 'right';
+        ctx.fillText(`${pct}%`, x + cardW - 28, cardY + 455);
+        ctx.textAlign = 'left';
+      };
+
+      drawSideCard(176, imgA, challenge.sideALabel, pctA, 'A', '#059669', '#ECFDF5', '#064E3B');
+      drawSideCard(756, imgB, challenge.sideBLabel, pctB, 'B', '#EA580C', '#FFF7ED', '#7C2D12');
+
+      ctx.fillStyle = '#111315';
+      ctx.beginPath();
+      ctx.roundRect(686, cardY + 195, 68, 56, 16);
+      ctx.fill();
+      ctx.fillStyle = '#FFFFFF';
+      ctx.font = '800 26px "Outfit", sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText('VS', 720, cardY + 233);
+      ctx.textAlign = 'left';
+    } else {
+      const barY = Math.max(afterTitleY + 72, 720);
+      // Side A
+      ctx.fillStyle = '#ECFDF5';
+      ctx.beginPath();
+      ctx.roundRect(176, barY, 1088, 148, 28);
+      ctx.fill();
+      ctx.fillStyle = '#A7F3D0';
+      ctx.beginPath();
+      ctx.roundRect(176, barY, Math.max(80, (1088 * pctA) / 100), 148, 28);
+      ctx.fill();
+
+      ctx.fillStyle = '#064E3B';
+      ctx.font = '700 42px "Plus Jakarta Sans", sans-serif';
+      ctx.fillText(challenge.sideALabel, 224, barY + 90);
+      ctx.font = '700 46px "JetBrains Mono", monospace';
+      ctx.textAlign = 'right';
+      ctx.fillText(`${pctA}%`, 1216, barY + 90);
+      ctx.textAlign = 'left';
+
+      // Side B
+      ctx.fillStyle = '#FFF7ED';
+      ctx.beginPath();
+      ctx.roundRect(176, barY + 184, 1088, 148, 28);
+      ctx.fill();
+      ctx.fillStyle = '#FED7AA';
+      ctx.beginPath();
+      ctx.roundRect(176, barY + 184, Math.max(80, (1088 * pctB) / 100), 148, 28);
+      ctx.fill();
+
+      ctx.fillStyle = '#7C2D12';
+      ctx.font = '700 42px "Plus Jakarta Sans", sans-serif';
+      ctx.fillText(challenge.sideBLabel, 224, barY + 274);
+      ctx.font = '700 46px "JetBrains Mono", monospace';
+      ctx.textAlign = 'right';
+      ctx.fillText(`${pctB}%`, 1216, barY + 274);
+      ctx.textAlign = 'left';
+    }
   }
 
   // Footer CTA

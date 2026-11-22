@@ -1,5 +1,12 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { onAuthStateChanged, signInWithPopup, signOut, User } from 'firebase/auth';
+import {
+  getRedirectResult,
+  onAuthStateChanged,
+  signInWithPopup,
+  signInWithRedirect,
+  signOut,
+  User,
+} from 'firebase/auth';
 import { Flame, Globe, Lock, Plus, Shield, Sparkles } from 'lucide-react';
 import { BattleCard } from './components/BattleCard';
 import { ChallengeArena } from './components/ChallengeArena';
@@ -101,6 +108,19 @@ export default function App() {
   }, []);
 
   useEffect(() => {
+    void getRedirectResult(auth).catch((err) => {
+      const code = (err as { code?: string })?.code;
+      if (code === 'auth/network-request-failed') {
+        setAuthError(
+          lang === 'ur'
+            ? 'نیٹ ورک کی وجہ سے گوگل لاگ ان مکمل نہیں ہو سکا۔ اگر AdBlocker، Private DNS یا VPN آن ہے تو بند کر کے Chrome میں کھولیں۔'
+            : 'Google Sign-In network error. Disable any AdBlocker / Private DNS / VPN, or tap ⋮ → Open in Chrome and retry.'
+        );
+      } else if (err instanceof Error) {
+        setAuthError(err.message);
+      }
+    });
+
     const unsubAuth = onAuthStateChanged(auth, async (user) => {
       setCurrentUser(user);
       if (user) {
@@ -160,6 +180,29 @@ export default function App() {
     try {
       await signInWithPopup(auth, googleProvider);
     } catch (err) {
+      const code = (err as { code?: string })?.code;
+      if (
+        code === 'auth/popup-blocked' ||
+        code === 'auth/operation-not-supported-in-this-environment'
+      ) {
+        try {
+          await signInWithRedirect(auth, googleProvider);
+          return;
+        } catch (redirectErr) {
+          setAuthError(
+            redirectErr instanceof Error ? redirectErr.message : 'Google Sign-In failed.'
+          );
+          return;
+        }
+      }
+      if (code === 'auth/network-request-failed') {
+        setAuthError(
+          lang === 'ur'
+            ? 'نیٹ ورک کی وجہ سے گوگل لاگ ان نہیں ہو سکا۔ موبائل پر AdBlocker / Private DNS / VPN بند کریں اور اوپر (⋮) سے "Open in Chrome" میں کھول کر دوبارہ لاگ ان کریں۔'
+            : 'Network error during Google Sign-In. Check your internet, disable any AdBlocker / Private DNS / VPN, or tap ⋮ → Open in Chrome and try again.'
+        );
+        return;
+      }
       setAuthError(err instanceof Error ? err.message : 'Google Sign-In failed.');
     }
   };

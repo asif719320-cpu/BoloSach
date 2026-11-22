@@ -16,6 +16,7 @@ export const LIMITS = {
   DISPLAY_NAME_MAX: 60,
   BIO_MAX: 160,
   PHOTO_URL_MAX: 500,
+  SIDE_IMAGE_MAX: 75000,
   TITLE_MIN: 3,
   TITLE_MAX: 140,
   SIDE_MIN: 1,
@@ -49,6 +50,18 @@ export function sanitizeHttpsUrl(rawUrl: string | null | undefined): string {
   }
 }
 
+const DATA_IMAGE_REGEX = /^data:image\/(jpeg|png|webp);base64,[A-Za-z0-9+/=]+$/;
+
+export function sanitizeSideImage(rawUrl: string | null | undefined): string {
+  if (!rawUrl) return '';
+  const trimmed = rawUrl.trim();
+  if (!trimmed) return '';
+  if (trimmed.length <= LIMITS.SIDE_IMAGE_MAX && DATA_IMAGE_REGEX.test(trimmed)) {
+    return trimmed;
+  }
+  return sanitizeHttpsUrl(trimmed);
+}
+
 export interface UserPrivate {
   uid: string;
   email: string;
@@ -80,6 +93,8 @@ export interface Challenge {
   title: string;
   sideALabel: string;
   sideBLabel: string;
+  sideAImageUrl?: string;
+  sideBImageUrl?: string;
   votesA: number;
   votesB: number;
   responseCount: number;
@@ -116,6 +131,8 @@ export interface CreateChallengeInput {
   title: string;
   sideALabel: string;
   sideBLabel: string;
+  sideAImageUrl?: string;
+  sideBImageUrl?: string;
   visibility: ChallengeVisibility;
   lang: LangCode;
 }
