@@ -62,6 +62,28 @@ function getInitialChallengeIdFromUrl(): string | null {
   }
 }
 
+function readCachedProfile(uid: string): PublicProfile | null {
+  try {
+    const raw = localStorage.getItem(`bolosach_profile_${uid}`);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as Partial<PublicProfile>;
+    if (parsed && parsed.uid === uid && parsed.displayName && parsed.handle) {
+      return parsed as PublicProfile;
+    }
+    return null;
+  } catch {
+    return null;
+  }
+}
+
+function writeCachedProfile(prof: PublicProfile): void {
+  try {
+    localStorage.setItem(`bolosach_profile_${prof.uid}`, JSON.stringify(prof));
+  } catch {
+    // Ignore storage quota errors
+  }
+}
+
 export default function App() {
   const [lang, setLang] = useState<LangCode>(() => {
     try {
@@ -124,16 +146,24 @@ export default function App() {
     const unsubAuth = onAuthStateChanged(auth, async (user) => {
       setCurrentUser(user);
       if (user) {
+        const cached = readCachedProfile(user.uid);
+        if (cached) {
+          setProfile(cached);
+        }
+        setAuthReady(true);
         try {
           const prof = await ensureUserDocuments(user, lang);
           setProfile(prof);
+          writeCachedProfile(prof);
         } catch (err) {
-          setAuthError(err instanceof Error ? err.message : 'Unable to initialize profile.');
+          if (!cached) {
+            setAuthError(err instanceof Error ? err.message : 'Unable to initialize profile.');
+          }
         }
       } else {
         setProfile(null);
+        setAuthReady(true);
       }
-      setAuthReady(true);
     });
     return () => unsubAuth();
   }, []);
@@ -208,7 +238,15 @@ export default function App() {
   };
 
   const handleSignOut = async () => {
+    const uid = currentUser?.uid;
     await signOut(auth);
+    if (uid) {
+      try {
+        localStorage.removeItem(`bolosach_profile_${uid}`);
+      } catch {
+        // Ignore storage errors
+      }
+    }
     setProfile(null);
   };
 
@@ -261,6 +299,7 @@ export default function App() {
         onOpenCreate={() => openCreateFlow('battle')}
         onSignIn={() => void handleSignIn()}
         isSignedIn={Boolean(currentUser && profile)}
+        authReady={authReady}
         lang={lang}
         onToggleLang={() => setLang((prev) => (prev === 'en' ? 'ur' : 'en'))}
         t={t}
@@ -294,12 +333,18 @@ export default function App() {
         <CreatorStudio
           currentUser={currentUser}
           profile={profile}
+          authReady={authReady}
           lang={lang}
           t={t}
           onSignIn={() => void handleSignIn()}
           onSignOut={() => void handleSignOut()}
           onProfileUpdated={(next) =>
-            setProfile((prev) => (prev ? { ...prev, ...next } : prev))
+            setProfile((prev) => {
+              if (!prev) return prev;
+              const updated = { ...prev, ...next };
+              writeCachedProfile(updated);
+              return updated;
+            })
           }
           onOpenCreate={() => openCreateFlow('battle')}
           onOpenArena={(id) => navigateToArena(id)}

@@ -36,6 +36,7 @@ import { OwnerControlCenter } from './OwnerControlCenter';
 interface CreatorStudioProps {
   currentUser: User | null;
   profile: PublicProfile | null;
+  authReady?: boolean;
   lang: LangCode;
   t: Translations;
   onSignIn: () => void;
@@ -48,6 +49,7 @@ interface CreatorStudioProps {
 export const CreatorStudio: React.FC<CreatorStudioProps> = ({
   currentUser,
   profile,
+  authReady = true,
   lang,
   t,
   onSignIn,
@@ -134,6 +136,18 @@ export const CreatorStudio: React.FC<CreatorStudioProps> = ({
     );
     return () => unsub();
   }, [currentUser?.uid, selectedChallengeId, myChallenges]);
+
+  if (!authReady) {
+    return (
+      <div className="max-w-2xl mx-auto px-4 py-12">
+        <div className="bg-white border border-neutral-200 rounded-3xl p-8 sm:p-10 animate-pulse space-y-4">
+          <div className="w-12 h-12 rounded-2xl bg-neutral-200 mx-auto" />
+          <div className="h-6 w-56 bg-neutral-200 rounded mx-auto" />
+          <div className="h-4 w-72 bg-neutral-100 rounded mx-auto" />
+        </div>
+      </div>
+    );
+  }
 
   if (!currentUser || !profile) {
     return (

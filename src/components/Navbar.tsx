@@ -12,6 +12,7 @@ interface NavbarProps {
   onOpenCreate: () => void;
   onSignIn: () => void;
   isSignedIn: boolean;
+  authReady?: boolean;
   lang: LangCode;
   onToggleLang: () => void;
   t: Translations;
@@ -23,6 +24,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   onOpenCreate,
   onSignIn,
   isSignedIn,
+  authReady = true,
   lang,
   onToggleLang,
   t,
@@ -83,20 +85,27 @@ export const Navbar: React.FC<NavbarProps> = ({
               {lang === 'en' ? 'اردو' : 'EN'}
             </button>
 
-            <button
-              type="button"
-              onClick={isSignedIn ? onOpenCreate : onSignIn}
-              className="inline-flex items-center justify-center gap-1.5 min-h-[40px] px-4 py-2 text-xs sm:text-sm font-semibold text-white bg-emerald-600 hover:bg-emerald-700 rounded-xl transition-colors whitespace-nowrap shrink-0 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-600 focus-visible:ring-offset-2"
-            >
-              {isSignedIn ? (
-                <>
-                  <Plus className="w-4 h-4 shrink-0" />
-                  <span>{t.createCta}</span>
-                </>
-              ) : (
-                <span>{t.signInCta}</span>
-              )}
-            </button>
+            {!authReady ? (
+              <div
+                aria-hidden="true"
+                className="min-h-[40px] w-24 rounded-xl bg-neutral-200 animate-pulse shrink-0"
+              />
+            ) : (
+              <button
+                type="button"
+                onClick={isSignedIn ? onOpenCreate : onSignIn}
+                className="inline-flex items-center justify-center gap-1.5 min-h-[40px] px-4 py-2 text-xs sm:text-sm font-semibold text-white bg-emerald-600 hover:bg-emerald-700 rounded-xl transition-colors whitespace-nowrap shrink-0 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-600 focus-visible:ring-offset-2"
+              >
+                {isSignedIn ? (
+                  <>
+                    <Plus className="w-4 h-4 shrink-0" />
+                    <span>{t.createCta}</span>
+                  </>
+                ) : (
+                  <span>{t.signInCta}</span>
+                )}
+              </button>
+            )}
           </div>
         </div>
       </header>
