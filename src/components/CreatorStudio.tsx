@@ -12,7 +12,7 @@ import {
   Trash2,
 } from 'lucide-react';
 import { Translations } from '../lib/i18n';
-import { getWhatsAppShareHref } from '../lib/shareCardGenerator';
+import { getAppWhatsAppInviteHref, getWhatsAppShareHref } from '../lib/shareCardGenerator';
 import {
   deleteChallengeById,
   deleteSecretResponse,
@@ -240,6 +240,16 @@ export const CreatorStudio: React.FC<CreatorStudioProps> = ({
             <Plus className="w-4 h-4" />
             <span>{t.createCta}</span>
           </button>
+
+          <a
+            href={getAppWhatsAppInviteHref(lang)}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-1.5 min-h-[44px] px-4 py-2 rounded-xl border border-emerald-200 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 text-sm font-semibold transition-colors"
+          >
+            <Share2 className="w-4 h-4" />
+            <span>{t.shareAppBtn}</span>
+          </a>
 
           <button
             type="button"

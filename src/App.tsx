@@ -7,7 +7,7 @@ import {
   signOut,
   User,
 } from 'firebase/auth';
-import { Flame, Globe, Lock, Plus, Shield, Sparkles } from 'lucide-react';
+import { Check, Copy, Flame, Globe, Lock, Plus, Share2, Shield, Sparkles } from 'lucide-react';
 import { BattleCard } from './components/BattleCard';
 import { ChallengeArena } from './components/ChallengeArena';
 import { CreateChallengeModal } from './components/CreateChallengeModal';
@@ -17,6 +17,7 @@ import { OfflineIndicator } from './components/OfflineIndicator';
 import { CATEGORY_ARTWORK } from './lib/categoryArt';
 import { auth, googleProvider } from './lib/firebase';
 import { COPY, STARTER_TEMPLATES } from './lib/i18n';
+import { getAppShareUrl, getAppWhatsAppInviteHref } from './lib/shareCardGenerator';
 import {
   ensureUserDocuments,
   subscribePublicChallenges,
@@ -110,8 +111,23 @@ export default function App() {
   const [createInitialType, setCreateInitialType] = useState<ChallengeType>('battle');
   const [pendingCreateAfterAuth, setPendingCreateAfterAuth] = useState(false);
   const [authError, setAuthError] = useState('');
+  const [appLinkCopied, setAppLinkCopied] = useState(false);
 
   const t = COPY[lang];
+
+  const handleCopyAppLink = async () => {
+    try {
+      await navigator.clipboard.writeText(getAppShareUrl());
+      setAppLinkCopied(true);
+      setTimeout(() => setAppLinkCopied(false), 2000);
+    } catch {
+      setAuthError(
+        lang === 'ur'
+          ? 'لنک کاپی نہیں ہو سکا، براہِ کرم ایڈریس بار سے کاپی کریں۔'
+          : 'Unable to copy link. Please copy from the address bar.'
+      );
+    }
+  };
 
   useEffect(() => {
     try {
@@ -397,6 +413,16 @@ export default function App() {
                       <Lock className="w-4 h-4" />
                       <span>{t.heroSecondaryBtn}</span>
                     </button>
+
+                    <a
+                      href={getAppWhatsAppInviteHref(lang)}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-2 min-h-[48px] px-5 py-3 rounded-xl border border-emerald-200 bg-emerald-50/70 hover:bg-emerald-100 text-emerald-800 text-sm font-bold transition-colors whitespace-nowrap shrink-0"
+                    >
+                      <Share2 className="w-4 h-4" />
+                      <span>{t.shareAppBtn}</span>
+                    </a>
                   </div>
                 </div>
 
@@ -674,6 +700,41 @@ export default function App() {
                     </button>
                   </div>
                 )}
+              </div>
+
+              {/* Invite Friends / Share App Card */}
+              <div className="bg-white border border-neutral-200 rounded-2xl p-5 space-y-3">
+                <div className="flex items-center gap-2">
+                  <Share2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                  <h3 className="text-sm font-bold text-neutral-950">{t.inviteFriendsTitle}</h3>
+                </div>
+                <p className="text-xs text-neutral-600 leading-relaxed">{t.inviteFriendsDesc}</p>
+                <p className="text-[11px] font-mono-nums text-neutral-500 bg-neutral-50 border border-neutral-200 rounded-xl px-3 py-2 truncate">
+                  {getAppShareUrl()}
+                </p>
+                <div className="grid grid-cols-2 gap-2">
+                  <a
+                    href={getAppWhatsAppInviteHref(lang)}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center justify-center gap-1.5 min-h-[40px] px-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold transition-colors whitespace-nowrap"
+                  >
+                    <Share2 className="w-3.5 h-3.5" />
+                    <span>{t.shareWhatsApp}</span>
+                  </a>
+                  <button
+                    type="button"
+                    onClick={() => void handleCopyAppLink()}
+                    className="inline-flex items-center justify-center gap-1.5 min-h-[40px] px-3 rounded-xl border border-neutral-200 hover:bg-neutral-50 text-neutral-800 text-xs font-semibold transition-colors whitespace-nowrap cursor-pointer"
+                  >
+                    {appLinkCopied ? (
+                      <Check className="w-3.5 h-3.5 text-emerald-600" />
+                    ) : (
+                      <Copy className="w-3.5 h-3.5" />
+                    )}
+                    <span>{appLinkCopied ? t.appLinkCopied : t.copyAppLink}</span>
+                  </button>
+                </div>
               </div>
 
               {/* Starter Prompts Card */}

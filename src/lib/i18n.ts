@@ -33,6 +33,11 @@ export interface Translations {
   createMyOwnBtn: string;
   oneClickHint: string;
   shareWhatsApp: string;
+  shareAppBtn: string;
+  inviteFriendsTitle: string;
+  inviteFriendsDesc: string;
+  copyAppLink: string;
+  appLinkCopied: string;
   copyLink: string;
   copied: string;
   downloadCard: string;
@@ -140,6 +145,12 @@ export const COPY: Record<LangCode, Translations> = {
     createMyOwnBtn: 'Create My Challenge',
     oneClickHint: '1-click vote · No account required to vote',
     shareWhatsApp: 'Share on WhatsApp',
+    shareAppBtn: 'Share App',
+    inviteFriendsTitle: 'Invite Friends to BoloSach',
+    inviteFriendsDesc:
+      'Send the app link on WhatsApp so friends can open BoloSach and build their own 1v1 photo battles & secret polls.',
+    copyAppLink: 'Copy App Link',
+    appLinkCopied: 'App Link Copied!',
     copyLink: 'Copy Link',
     copied: 'Link Copied',
     downloadCard: 'Status Card',
@@ -262,6 +273,12 @@ export const COPY: Record<LangCode, Translations> = {
     createMyOwnBtn: 'اپنا چیلنج بنائیں',
     oneClickHint: '1 کلک ووٹ · ووٹ دینے کے لیے لاگ ان ضروری نہیں',
     shareWhatsApp: 'WhatsApp شیئر',
+    shareAppBtn: 'ایپ شیئر کریں',
+    inviteFriendsTitle: 'دوستوں کو BoloSach پر بلائیں',
+    inviteFriendsDesc:
+      'اپنے دوستوں کو ایپ کا لنک WhatsApp پر بھیجیں تاکہ وہ بھی ایپ کھول کر اپنے 1v1 فوٹو مقابلے اور خفیہ پولز بنا سکیں۔',
+    copyAppLink: 'ایپ لنک کاپی کریں',
+    appLinkCopied: 'ایپ لنک کاپی ہو گیا!',
     copyLink: 'لنک کاپی کریں',
     copied: 'لنک کاپی ہو گیا',
     downloadCard: 'اسٹیٹس کارڈ',
