@@ -1,0 +1,303 @@
+{
+  "entities": {
+    "UserPrivate": {
+      "title": "UserPrivate",
+      "description": "Private user account metadata and PII isolated from public views.",
+      "type": "object",
+      "properties": {
+        "uid": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "email": {
+          "type": "string",
+          "format": "email",
+          "maxLength": 200
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": ["uid", "email", "createdAt", "updatedAt"]
+    },
+    "PublicProfile": {
+      "title": "PublicProfile",
+      "description": "Public creator profile displayed on battle cards and polls.",
+      "type": "object",
+      "properties": {
+        "uid": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "displayName": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 60
+        },
+        "handle": {
+          "type": "string",
+          "minLength": 2,
+          "maxLength": 32,
+          "pattern": "^[a-zA-Z0-9_]+$"
+        },
+        "photoUrl": {
+          "type": "string",
+          "maxLength": 500
+        },
+        "bio": {
+          "type": "string",
+          "maxLength": 160
+        },
+        "preferredLang": {
+          "type": "string",
+          "enum": ["en", "ur"]
+        },
+        "totalChallenges": {
+          "type": "integer"
+        },
+        "totalVotesReceived": {
+          "type": "integer"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "uid",
+        "displayName",
+        "handle",
+        "photoUrl",
+        "bio",
+        "preferredLang",
+        "totalChallenges",
+        "totalVotesReceived",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "Challenge": {
+      "title": "Challenge",
+      "description": "A 1v1 Friend Battle, Friend Group Poll, or Secret Poll (BoloSach Q&A).",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "creatorId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "creatorName": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 60
+        },
+        "creatorHandle": {
+          "type": "string",
+          "minLength": 2,
+          "maxLength": 32,
+          "pattern": "^[a-zA-Z0-9_]+$"
+        },
+        "creatorPhotoUrl": {
+          "type": "string",
+          "maxLength": 500
+        },
+        "type": {
+          "type": "string",
+          "enum": ["battle", "secret_poll", "friend_poll"]
+        },
+        "category": {
+          "type": "string",
+          "enum": ["cricket", "poetry", "friendship", "roast", "debate", "general"]
+        },
+        "title": {
+          "type": "string",
+          "minLength": 3,
+          "maxLength": 140
+        },
+        "sideALabel": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 60
+        },
+        "sideBLabel": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 60
+        },
+        "votesA": {
+          "type": "integer"
+        },
+        "votesB": {
+          "type": "integer"
+        },
+        "responseCount": {
+          "type": "integer"
+        },
+        "lastEventId": {
+          "type": "string",
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]*$"
+        },
+        "visibility": {
+          "type": "string",
+          "enum": ["public", "unlisted"]
+        },
+        "status": {
+          "type": "string",
+          "enum": ["active", "closed"]
+        },
+        "lang": {
+          "type": "string",
+          "enum": ["en", "ur"]
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "creatorId",
+        "creatorName",
+        "creatorHandle",
+        "creatorPhotoUrl",
+        "type",
+        "category",
+        "title",
+        "sideALabel",
+        "sideBLabel",
+        "votesA",
+        "votesB",
+        "responseCount",
+        "lastEventId",
+        "visibility",
+        "status",
+        "lang",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "Vote": {
+      "title": "Vote",
+      "description": "One-per-voter ballot record for a 1v1 Battle or Friend Poll.",
+      "type": "object",
+      "properties": {
+        "challengeId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "side": {
+          "type": "string",
+          "enum": ["A", "B"]
+        },
+        "voterUid": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": ["challengeId", "side", "voterUid", "createdAt"]
+    },
+    "SecretResponse": {
+      "title": "SecretResponse",
+      "description": "Anonymous truth reply submitted to a Secret Poll, private to the creator unless showcased.",
+      "type": "object",
+      "properties": {
+        "challengeId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "creatorId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "message": {
+          "type": "string",
+          "minLength": 2,
+          "maxLength": 280
+        },
+        "moodTag": {
+          "type": "string",
+          "enum": ["honest", "funny", "spicy", "kind"]
+        },
+        "isShowcased": {
+          "type": "boolean"
+        },
+        "creatorReply": {
+          "type": "string",
+          "maxLength": 240
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "challengeId",
+        "creatorId",
+        "message",
+        "moodTag",
+        "isShowcased",
+        "creatorReply",
+        "createdAt"
+      ]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": { "$ref": "#/entities/UserPrivate" },
+      "description": "Private user PII document readable and writable strictly by the owning user."
+    },
+    "/profiles/{userId}": {
+      "schema": { "$ref": "#/entities/PublicProfile" },
+      "description": "Public creator profile document with display name, handle, and aggregate challenge counters."
+    },
+    "/challenges/{challengeId}": {
+      "schema": { "$ref": "#/entities/Challenge" },
+      "description": "Public or unlisted 1v1 Friend Battles, Friend Polls, and Secret Polls."
+    },
+    "/challenges/{challengeId}/votes/{voteId}": {
+      "schema": { "$ref": "#/entities/Vote" },
+      "description": "Individual vote records keyed by voter identifier to prevent duplicate voting."
+    },
+    "/challenges/{challengeId}/responses/{responseId}": {
+      "schema": { "$ref": "#/entities/SecretResponse" },
+      "description": "Anonymous secret responses to polls, private to the challenge creator unless showcased."
+    }
+  }
+}

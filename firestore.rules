@@ -1,0 +1,349 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Pillar 1 / Global Safety Net: Default-deny catch-all
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // =========================================================
+    // Global Hardened Primitives
+    // =========================================================
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isVerifiedUser() {
+      return isSignedIn() && request.auth.token.email_verified == true;
+    }
+
+    function isAdmin() {
+      return isVerifiedUser() && request.auth.token.email == 'asifrn0041@gmail.com';
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() >= 1 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function isValidHttpsOrEmpty(url) {
+      return url is string && (url == '' || (url.size() <= 500 && url.matches('^https://.*')));
+    }
+
+    // =========================================================
+    // Validation Blueprints (Anti-Update-Gap)
+    // =========================================================
+    function isValidUserPrivate(data) {
+      return data.keys().hasAll(['uid', 'email', 'createdAt', 'updatedAt'])
+        && data.keys().hasOnly(['uid', 'email', 'createdAt', 'updatedAt'])
+        && isValidId(data.uid)
+        && data.uid == request.auth.uid
+        && data.email is string
+        && data.email.size() >= 3
+        && data.email.size() <= 200
+        && data.createdAt is timestamp
+        && data.updatedAt is timestamp;
+    }
+
+    function isValidPublicProfile(data) {
+      return data.keys().hasAll([
+          'uid', 'displayName', 'handle', 'photoUrl', 'bio',
+          'preferredLang', 'totalChallenges', 'totalVotesReceived',
+          'createdAt', 'updatedAt'
+        ])
+        && data.keys().hasOnly([
+          'uid', 'displayName', 'handle', 'photoUrl', 'bio',
+          'preferredLang', 'totalChallenges', 'totalVotesReceived',
+          'createdAt', 'updatedAt'
+        ])
+        && isValidId(data.uid)
+        && data.uid == request.auth.uid
+        && data.displayName is string && data.displayName.size() >= 1 && data.displayName.size() <= 60
+        && data.handle is string && data.handle.size() >= 2 && data.handle.size() <= 32 && data.handle.matches('^[a-zA-Z0-9_]+$')
+        && isValidHttpsOrEmpty(data.photoUrl)
+        && data.bio is string && data.bio.size() <= 160
+        && data.preferredLang in ['en', 'ur']
+        && data.totalChallenges is int && data.totalChallenges >= 0
+        && data.totalVotesReceived is int && data.totalVotesReceived >= 0
+        && data.createdAt is timestamp
+        && data.updatedAt is timestamp;
+    }
+
+    function isValidChallenge(data) {
+      return data.keys().hasAll([
+          'id', 'creatorId', 'creatorName', 'creatorHandle', 'creatorPhotoUrl',
+          'type', 'category', 'title', 'sideALabel', 'sideBLabel',
+          'votesA', 'votesB', 'responseCount', 'lastEventId', 'visibility', 'status',
+          'lang', 'createdAt', 'updatedAt'
+        ])
+        && data.keys().hasOnly([
+          'id', 'creatorId', 'creatorName', 'creatorHandle', 'creatorPhotoUrl',
+          'type', 'category', 'title', 'sideALabel', 'sideBLabel',
+          'votesA', 'votesB', 'responseCount', 'lastEventId', 'visibility', 'status',
+          'lang', 'createdAt', 'updatedAt'
+        ])
+        && isValidId(data.id)
+        && isValidId(data.creatorId)
+        && data.creatorName is string && data.creatorName.size() >= 1 && data.creatorName.size() <= 60
+        && data.creatorHandle is string && data.creatorHandle.size() >= 2 && data.creatorHandle.size() <= 32 && data.creatorHandle.matches('^[a-zA-Z0-9_]+$')
+        && isValidHttpsOrEmpty(data.creatorPhotoUrl)
+        && data.type in ['battle', 'secret_poll', 'friend_poll']
+        && data.category in ['cricket', 'poetry', 'friendship', 'roast', 'debate', 'general']
+        && data.title is string && data.title.size() >= 3 && data.title.size() <= 140
+        && data.sideALabel is string && data.sideALabel.size() >= 1 && data.sideALabel.size() <= 60
+        && data.sideBLabel is string && data.sideBLabel.size() >= 1 && data.sideBLabel.size() <= 60
+        && data.votesA is int && data.votesA >= 0
+        && data.votesB is int && data.votesB >= 0
+        && data.responseCount is int && data.responseCount >= 0
+        && data.lastEventId is string && data.lastEventId.size() <= 128 && data.lastEventId.matches('^[a-zA-Z0-9_\\-]*$')
+        && data.visibility in ['public', 'unlisted']
+        && data.status in ['active', 'closed']
+        && data.lang in ['en', 'ur']
+        && data.createdAt is timestamp
+        && data.updatedAt is timestamp;
+    }
+
+    function isValidVote(data) {
+      return data.keys().hasAll(['challengeId', 'side', 'voterUid', 'createdAt'])
+        && data.keys().hasOnly(['challengeId', 'side', 'voterUid', 'createdAt'])
+        && isValidId(data.challengeId)
+        && data.side in ['A', 'B']
+        && isValidId(data.voterUid)
+        && data.createdAt is timestamp;
+    }
+
+    function isValidSecretResponse(data) {
+      return data.keys().hasAll([
+          'challengeId', 'creatorId', 'message', 'moodTag',
+          'isShowcased', 'creatorReply', 'createdAt'
+        ])
+        && data.keys().hasOnly([
+          'challengeId', 'creatorId', 'message', 'moodTag',
+          'isShowcased', 'creatorReply', 'createdAt'
+        ])
+        && isValidId(data.challengeId)
+        && isValidId(data.creatorId)
+        && data.message is string && data.message.size() >= 2 && data.message.size() <= 280
+        && data.moodTag in ['honest', 'funny', 'spicy', 'kind']
+        && data.isShowcased is bool
+        && data.creatorReply is string && data.creatorReply.size() <= 240
+        && data.createdAt is timestamp;
+    }
+
+    // =========================================================
+    // Collection Group Admin Monitoring (Owner Only)
+    // =========================================================
+    match /{path=**}/votes/{voteId} {
+      allow list: if isAdmin();
+    }
+
+    match /{path=**}/responses/{responseId} {
+      allow list: if isAdmin();
+    }
+
+    // =========================================================
+    // Collection Rules
+    // =========================================================
+
+    // 1. Private User PII (strictly owner-only)
+    match /users/{userId} {
+      allow get: if isVerifiedUser() && isValidId(userId) && (request.auth.uid == userId || isAdmin());
+      allow list: if false;
+      allow create: if isVerifiedUser()
+        && isValidId(userId)
+        && request.auth.uid == userId
+        && isValidUserPrivate(incoming())
+        && incoming().createdAt == request.time
+        && incoming().updatedAt == request.time;
+      allow update: if isVerifiedUser()
+        && isValidId(userId)
+        && request.auth.uid == userId
+        && isValidUserPrivate(incoming())
+        && incoming().uid == existing().uid
+        && incoming().createdAt == existing().createdAt
+        && incoming().updatedAt == request.time
+        && incoming().diff(existing()).affectedKeys().hasOnly(['email', 'updatedAt']);
+      allow delete: if false;
+    }
+
+    // 2. Public Creator Profiles (no PII)
+    match /profiles/{userId} {
+      allow get: if isValidId(userId);
+      allow list: if isAdmin() || (isSignedIn() && resource.data.uid == request.auth.uid);
+      allow create: if isVerifiedUser()
+        && isValidId(userId)
+        && request.auth.uid == userId
+        && isValidPublicProfile(incoming())
+        && incoming().totalChallenges == 0
+        && incoming().totalVotesReceived == 0
+        && incoming().createdAt == request.time
+        && incoming().updatedAt == request.time;
+      allow update: if isVerifiedUser()
+        && isValidId(userId)
+        && request.auth.uid == userId
+        && isValidPublicProfile(incoming())
+        && incoming().uid == existing().uid
+        && incoming().createdAt == existing().createdAt
+        && incoming().updatedAt == request.time
+        && (
+          incoming().diff(existing()).affectedKeys().hasOnly(['displayName', 'handle', 'photoUrl', 'bio', 'preferredLang', 'updatedAt']) ||
+          (
+            incoming().diff(existing()).affectedKeys().hasOnly(['totalChallenges', 'updatedAt']) &&
+            incoming().totalChallenges == existing().totalChallenges + 1
+          )
+        );
+      allow delete: if false;
+    }
+
+    // 3. Challenges (1v1 Battles, Friend Polls, Secret Polls)
+    match /challenges/{challengeId} {
+      allow get: if isValidId(challengeId) && (
+        isAdmin() ||
+        resource == null ||
+        existing().visibility in ['public', 'unlisted'] ||
+        (isSignedIn() && existing().creatorId == request.auth.uid)
+      );
+      allow list: if isAdmin() ||
+        resource.data.visibility == 'public' ||
+        (isSignedIn() && resource.data.creatorId == request.auth.uid);
+
+      allow create: if isVerifiedUser()
+        && isValidId(challengeId)
+        && isValidChallenge(incoming())
+        && incoming().id == challengeId
+        && incoming().creatorId == request.auth.uid
+        && incoming().votesA == 0
+        && incoming().votesB == 0
+        && incoming().responseCount == 0
+        && incoming().lastEventId == ''
+        && incoming().status == 'active'
+        && incoming().createdAt == request.time
+        && incoming().updatedAt == request.time;
+
+      allow update: if isValidId(challengeId)
+        && isValidChallenge(incoming())
+        && incoming().id == existing().id
+        && incoming().creatorId == existing().creatorId
+        && incoming().createdAt == existing().createdAt
+        && incoming().updatedAt == request.time
+        && (
+          // Action 1: Creator or Admin updates status or visibility
+          (
+            (isAdmin() || (isVerifiedUser() && existing().creatorId == request.auth.uid))
+            && incoming().diff(existing()).affectedKeys().hasOnly(['status', 'visibility', 'updatedAt'])
+          ) ||
+          // Action 2: Atomic Vote Side A (+1) with subcollection proof
+          (
+            existing().status == 'active'
+            && existing().type in ['battle', 'friend_poll']
+            && incoming().diff(existing()).affectedKeys().hasOnly(['votesA', 'lastEventId', 'updatedAt'])
+            && incoming().votesA == existing().votesA + 1
+            && isValidId(incoming().lastEventId)
+            && (isSignedIn() ? incoming().lastEventId == request.auth.uid : incoming().lastEventId.matches('^guest_[a-zA-Z0-9_\\-]+$'))
+            && !exists(/databases/$(database)/documents/challenges/$(challengeId)/votes/$(incoming().lastEventId))
+            && getAfter(/databases/$(database)/documents/challenges/$(challengeId)/votes/$(incoming().lastEventId)).data.challengeId == challengeId
+            && getAfter(/databases/$(database)/documents/challenges/$(challengeId)/votes/$(incoming().lastEventId)).data.side == 'A'
+          ) ||
+          // Action 3: Atomic Vote Side B (+1) with subcollection proof
+          (
+            existing().status == 'active'
+            && existing().type in ['battle', 'friend_poll']
+            && incoming().diff(existing()).affectedKeys().hasOnly(['votesB', 'lastEventId', 'updatedAt'])
+            && incoming().votesB == existing().votesB + 1
+            && isValidId(incoming().lastEventId)
+            && (isSignedIn() ? incoming().lastEventId == request.auth.uid : incoming().lastEventId.matches('^guest_[a-zA-Z0-9_\\-]+$'))
+            && !exists(/databases/$(database)/documents/challenges/$(challengeId)/votes/$(incoming().lastEventId))
+            && getAfter(/databases/$(database)/documents/challenges/$(challengeId)/votes/$(incoming().lastEventId)).data.challengeId == challengeId
+            && getAfter(/databases/$(database)/documents/challenges/$(challengeId)/votes/$(incoming().lastEventId)).data.side == 'B'
+          ) ||
+          // Action 4: Atomic Secret Response (+1) with subcollection proof
+          (
+            existing().status == 'active'
+            && existing().type in ['secret_poll', 'friend_poll']
+            && incoming().diff(existing()).affectedKeys().hasOnly(['responseCount', 'lastEventId', 'updatedAt'])
+            && incoming().responseCount == existing().responseCount + 1
+            && isValidId(incoming().lastEventId)
+            && !exists(/databases/$(database)/documents/challenges/$(challengeId)/responses/$(incoming().lastEventId))
+            && existsAfter(/databases/$(database)/documents/challenges/$(challengeId)/responses/$(incoming().lastEventId))
+          )
+        );
+
+      allow delete: if isValidId(challengeId) &&
+        (isAdmin() || (isVerifiedUser() && existing().creatorId == request.auth.uid));
+
+      // 3a. Votes Subcollection (1 vote per voterId, atomically bound to parent challenge)
+      match /votes/{voteId} {
+        allow get: if isValidId(challengeId) && isValidId(voteId) && (
+          isAdmin() ||
+          resource == null ||
+          (isSignedIn() ? existing().voterUid == request.auth.uid : existing().voterUid == 'guest')
+        );
+        allow list: if isAdmin();
+        allow create: if isValidId(challengeId)
+          && isValidId(voteId)
+          && isValidVote(incoming())
+          && incoming().challengeId == challengeId
+          && incoming().createdAt == request.time
+          && (
+            isSignedIn()
+              ? (voteId == request.auth.uid && incoming().voterUid == request.auth.uid)
+              : (voteId.matches('^guest_[a-zA-Z0-9_\\-]+$') && incoming().voterUid == 'guest')
+          )
+          && exists(/databases/$(database)/documents/challenges/$(challengeId))
+          && get(/databases/$(database)/documents/challenges/$(challengeId)).data.status == 'active'
+          && get(/databases/$(database)/documents/challenges/$(challengeId)).data.type in ['battle', 'friend_poll']
+          && getAfter(/databases/$(database)/documents/challenges/$(challengeId)).data.lastEventId == voteId;
+        allow update, delete: if false;
+      }
+
+      // 3b. Secret Responses Subcollection (Private to creator unless showcased)
+      match /responses/{responseId} {
+        allow get: if isValidId(challengeId)
+          && isValidId(responseId)
+          && (
+            isAdmin() ||
+            resource == null ||
+            existing().isShowcased == true ||
+            (isSignedIn() && existing().creatorId == request.auth.uid)
+          );
+        allow list: if isAdmin() ||
+          resource.data.isShowcased == true ||
+          (isSignedIn() && resource.data.creatorId == request.auth.uid);
+        allow create: if isValidId(challengeId)
+          && isValidId(responseId)
+          && isValidSecretResponse(incoming())
+          && incoming().challengeId == challengeId
+          && incoming().isShowcased == false
+          && incoming().creatorReply == ''
+          && incoming().createdAt == request.time
+          && exists(/databases/$(database)/documents/challenges/$(challengeId))
+          && get(/databases/$(database)/documents/challenges/$(challengeId)).data.status == 'active'
+          && get(/databases/$(database)/documents/challenges/$(challengeId)).data.type in ['secret_poll', 'friend_poll']
+          && get(/databases/$(database)/documents/challenges/$(challengeId)).data.creatorId == incoming().creatorId
+          && getAfter(/databases/$(database)/documents/challenges/$(challengeId)).data.lastEventId == responseId;
+        allow update: if isVerifiedUser()
+          && isValidId(challengeId)
+          && isValidId(responseId)
+          && isValidSecretResponse(incoming())
+          && (isAdmin() || existing().creatorId == request.auth.uid)
+          && incoming().creatorId == existing().creatorId
+          && incoming().challengeId == existing().challengeId
+          && incoming().message == existing().message
+          && incoming().moodTag == existing().moodTag
+          && incoming().createdAt == existing().createdAt
+          && incoming().diff(existing()).affectedKeys().hasOnly(['isShowcased', 'creatorReply']);
+        allow delete: if isValidId(challengeId)
+          && isValidId(responseId)
+          && (isAdmin() || (isVerifiedUser() && existing().creatorId == request.auth.uid));
+      }
+    }
+  }
+}
