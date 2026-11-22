@@ -3,6 +3,7 @@ import { Flame, Home, Lock, Plus, User as UserIcon } from 'lucide-react';
 import { Translations } from '../lib/i18n';
 import { LangCode } from '../types/bolosach';
 import { PWAInstallButton } from './PWAInstallButton';
+import APP_ICON from '../assets/images/bolosach_app_icon_custom.jpg';
 
 export type AppTab = 'feed' | 'battles' | 'secrets' | 'studio';
 
@@ -40,13 +41,18 @@ export const Navbar: React.FC<NavbarProps> = ({
     <>
       <header className="sticky top-0 z-30 bg-[#F7F7F4]/90 backdrop-blur-md border-b border-neutral-200/80">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 h-14 md:h-16 flex items-center justify-between gap-8">
-          {/* Zone 1: Single-element wordmark */}
+          {/* Zone 1: Single-element brand emblem + wordmark */}
           <button
             type="button"
             onClick={() => onSelectTab('feed')}
-            className="text-xl md:text-2xl font-extrabold tracking-tight text-neutral-950 whitespace-nowrap shrink-0 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-600 rounded-md"
+            className="inline-flex items-center gap-2.5 text-xl md:text-2xl font-extrabold tracking-tight text-neutral-950 whitespace-nowrap shrink-0 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-600 rounded-md"
           >
-            {t.brand}
+            <img
+              src={APP_ICON}
+              alt="BoloSach"
+              className="w-8 h-8 rounded-lg object-cover border border-neutral-200 shrink-0"
+            />
+            <span>{t.brand}</span>
           </button>
 
           {/* Zone 2: 4 clean single-line navigation links (Desktop) */}
