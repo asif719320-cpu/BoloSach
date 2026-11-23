@@ -15,6 +15,7 @@ import { CreatorStudio } from './components/CreatorStudio';
 import { AppTab, Navbar } from './components/Navbar';
 import { OfflineIndicator } from './components/OfflineIndicator';
 import { PWAInstallButton } from './components/PWAInstallButton';
+import { SupportFeedbackCard } from './components/SupportFeedbackCard';
 import { CATEGORY_ARTWORK } from './lib/categoryArt';
 import { auth, googleProvider } from './lib/firebase';
 import { COPY, STARTER_TEMPLATES } from './lib/i18n';
@@ -324,15 +325,32 @@ export default function App() {
 
       {authError && (
         <div className="max-w-7xl mx-auto px-4 sm:px-6 pt-4">
-          <div className="bg-red-50 border border-red-200 text-red-800 text-xs rounded-xl px-4 py-2.5 flex items-center justify-between gap-3">
+          <div className="bg-red-50 border border-red-200 text-red-800 text-xs rounded-xl px-4 py-2.5 flex flex-wrap items-center justify-between gap-3">
             <span>{authError}</span>
-            <button
-              type="button"
-              onClick={() => setAuthError('')}
-              className="font-semibold underline cursor-pointer"
-            >
-              Dismiss
-            </button>
+            <div className="flex items-center gap-3 shrink-0">
+              <button
+                type="button"
+                onClick={() => {
+                  if (arenaChallengeId) navigateToArena(null);
+                  if (activeTab === 'studio') setActiveTab('feed');
+                  setTimeout(() => {
+                    document
+                      .getElementById('support-feedback-box')
+                      ?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                  }, 120);
+                }}
+                className="font-bold underline cursor-pointer"
+              >
+                {lang === 'ur' ? 'ایڈمن کو بتائیں' : 'Report Issue'}
+              </button>
+              <button
+                type="button"
+                onClick={() => setAuthError('')}
+                className="font-semibold underline cursor-pointer"
+              >
+                {lang === 'ur' ? 'بند کریں' : 'Dismiss'}
+              </button>
+            </div>
           </div>
         </div>
       )}
@@ -738,6 +756,9 @@ export default function App() {
                 </div>
                 <PWAInstallButton lang={lang} variant="full" />
               </div>
+
+              {/* Support / Issue Comment Box */}
+              <SupportFeedbackCard currentUser={currentUser} lang={lang} t={t} />
 
               {/* Starter Prompts Card */}
               <div className="bg-white border border-neutral-200 rounded-2xl p-5 space-y-3">

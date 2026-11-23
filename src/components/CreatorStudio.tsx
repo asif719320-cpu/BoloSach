@@ -32,6 +32,7 @@ import {
   SecretResponse,
 } from '../types/bolosach';
 import { OwnerControlCenter } from './OwnerControlCenter';
+import { SupportFeedbackCard } from './SupportFeedbackCard';
 
 interface CreatorStudioProps {
   currentUser: User | null;
@@ -151,7 +152,7 @@ export const CreatorStudio: React.FC<CreatorStudioProps> = ({
 
   if (!currentUser || !profile) {
     return (
-      <div className="max-w-2xl mx-auto px-4 py-12">
+      <div className="max-w-2xl mx-auto px-4 py-12 space-y-6">
         <div className="bg-white border border-neutral-200 rounded-3xl p-8 sm:p-10 text-center">
           <div className="w-12 h-12 rounded-2xl bg-emerald-50 text-emerald-700 flex items-center justify-center mx-auto mb-4">
             <Lock className="w-6 h-6" />
@@ -166,6 +167,8 @@ export const CreatorStudio: React.FC<CreatorStudioProps> = ({
             <span>{t.continueGoogle}</span>
           </button>
         </div>
+
+        <SupportFeedbackCard currentUser={currentUser} lang={lang} t={t} />
       </div>
     );
   }

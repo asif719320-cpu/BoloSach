@@ -149,6 +149,22 @@ service cloud.firestore {
         && data.createdAt is timestamp;
     }
 
+    function isValidFeedback(data) {
+      return data.keys().hasAll([
+          'id', 'email', 'message', 'status', 'submitterUid', 'lang', 'createdAt'
+        ])
+        && data.keys().hasOnly([
+          'id', 'email', 'message', 'status', 'submitterUid', 'lang', 'createdAt'
+        ])
+        && isValidId(data.id)
+        && data.email is string && data.email.size() >= 5 && data.email.size() <= 160 && data.email.matches('^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$')
+        && data.message is string && data.message.size() >= 4 && data.message.size() <= 500
+        && data.status in ['open', 'resolved']
+        && isValidId(data.submitterUid)
+        && data.lang in ['en', 'ur']
+        && data.createdAt is timestamp;
+    }
+
     // =========================================================
     // Collection Group Admin Monitoring (Owner Only)
     // =========================================================
@@ -355,6 +371,29 @@ service cloud.firestore {
           && isValidId(responseId)
           && (isAdmin() || (isVerifiedUser() && existing().creatorId == request.auth.uid));
       }
+    }
+
+    // 4. Support & Issue Comments (Any user can submit; PII strictly readable/moderated by Admin only)
+    match /feedback/{feedbackId} {
+      allow get: if isAdmin() && isValidId(feedbackId);
+      allow list: if isAdmin();
+      allow create: if isValidId(feedbackId)
+        && isValidFeedback(incoming())
+        && incoming().id == feedbackId
+        && incoming().status == 'open'
+        && incoming().createdAt == request.time
+        && (isSignedIn() ? incoming().submitterUid == request.auth.uid : incoming().submitterUid == 'guest');
+      allow update: if isAdmin()
+        && isValidId(feedbackId)
+        && isValidFeedback(incoming())
+        && incoming().id == existing().id
+        && incoming().email == existing().email
+        && incoming().message == existing().message
+        && incoming().submitterUid == existing().submitterUid
+        && incoming().lang == existing().lang
+        && incoming().createdAt == existing().createdAt
+        && incoming().diff(existing()).affectedKeys().hasOnly(['status']);
+      allow delete: if isAdmin() && isValidId(feedbackId);
     }
   }
 }

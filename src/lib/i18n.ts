@@ -103,6 +103,15 @@ export interface Translations {
   notFoundTitle: string;
   notFoundDesc: string;
   leaderboardTitle: string;
+  feedbackTitle: string;
+  feedbackDesc: string;
+  feedbackEmailLabel: string;
+  feedbackEmailPlaceholder: string;
+  feedbackMessageLabel: string;
+  feedbackMessagePlaceholder: string;
+  feedbackSubmit: string;
+  feedbackSending: string;
+  feedbackSent: string;
   typeLabels: Record<ChallengeType, string>;
   categoryLabels: Record<ChallengeCategory, string>;
   moodLabels: Record<SecretMoodTag, string>;
@@ -217,6 +226,16 @@ export const COPY: Record<LangCode, Translations> = {
     notFoundTitle: 'Challenge not found',
     notFoundDesc: 'This link may have expired or been removed by its creator.',
     leaderboardTitle: 'Active Topics',
+    feedbackTitle: 'Report an Issue or Comment',
+    feedbackDesc:
+      'Facing any issue or have feedback? Leave your Gmail and comment — only the BoloSach admin can read it.',
+    feedbackEmailLabel: 'Your Gmail Address',
+    feedbackEmailPlaceholder: 'example@gmail.com',
+    feedbackMessageLabel: 'Your Issue or Comment',
+    feedbackMessagePlaceholder: 'Describe what issue you are facing...',
+    feedbackSubmit: 'Send to Admin',
+    feedbackSending: 'Sending...',
+    feedbackSent: 'Your comment has been sent to the admin!',
     typeLabels: {
       battle: '1v1 Battle',
       friend_poll: 'Friend Poll',
@@ -345,6 +364,16 @@ export const COPY: Record<LangCode, Translations> = {
     notFoundTitle: 'چیلنج نہیں ملا',
     notFoundDesc: 'ہو سکتا ہے یہ لنک ختم ہو گیا ہو یا بنانے والے نے حذف کر دیا ہو۔',
     leaderboardTitle: 'موضوعات',
+    feedbackTitle: 'مسئلہ بتائیں / ایڈمن کو کمنٹ کریں',
+    feedbackDesc:
+      'اگر ایپ چلانے میں کوئی مسئلہ یا پریشانی آ رہی ہے تو اپنی جی میل اور کمنٹ لکھیں — یہ صرف ایڈمن دیکھ سکتا ہے۔',
+    feedbackEmailLabel: 'آپ کی جی میل (Gmail)',
+    feedbackEmailPlaceholder: 'example@gmail.com',
+    feedbackMessageLabel: 'اپنا مسئلہ یا کمنٹ لکھیں',
+    feedbackMessagePlaceholder: 'بتائیں کہ آپ کو کیا مسئلہ آ رہا ہے...',
+    feedbackSubmit: 'ایڈمن کو کمنٹ بھیجیں',
+    feedbackSending: 'بھیجا جا رہا ہے...',
+    feedbackSent: 'آپ کا کمنٹ ایڈمن تک پہنچ گیا ہے!',
     typeLabels: {
       battle: '1v1 مقابلہ',
       friend_poll: 'فرینڈ پول',

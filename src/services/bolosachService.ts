@@ -11,6 +11,7 @@ import {
   query,
   runTransaction,
   serverTimestamp,
+  setDoc,
   Unsubscribe,
   updateDoc,
   where,
@@ -30,6 +31,8 @@ import {
   sanitizeSideImage,
   SecretMoodTag,
   SecretResponse,
+  SupportFeedback,
+  SupportFeedbackStatus,
   VoteRecord,
 } from '../types/bolosach';
 
@@ -666,5 +669,101 @@ export function subscribeAdminAllProfiles(
       }
     }
   );
+}
+
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+export async function submitSupportFeedback(
+  email: string,
+  message: string,
+  lang: LangCode,
+  currentUser: User | null
+): Promise<string> {
+  const cleanEmail = email.trim().slice(0, LIMITS.EMAIL_MAX);
+  const cleanMessage = message.trim().slice(0, LIMITS.FEEDBACK_MAX);
+
+  if (cleanEmail.length < LIMITS.EMAIL_MIN || !EMAIL_REGEX.test(cleanEmail)) {
+    throw new Error(
+      lang === 'ur'
+        ? 'براہِ کرم درست Gmail / ای میل ایڈریس درج کریں۔'
+        : 'Please enter a valid Gmail or email address.'
+    );
+  }
+  if (cleanMessage.length < LIMITS.FEEDBACK_MIN) {
+    throw new Error(
+      lang === 'ur'
+        ? 'براہِ کرم اپنا مسئلہ کم از کم 4 حروف میں لکھیں۔'
+        : 'Please describe your issue in at least 4 characters.'
+    );
+  }
+
+  const feedbackRef = doc(collection(db, 'feedback'));
+  const path = `feedback/${feedbackRef.id}`;
+
+  try {
+    await setDoc(feedbackRef, {
+      id: feedbackRef.id,
+      email: cleanEmail,
+      message: cleanMessage,
+      status: 'open',
+      submitterUid: currentUser ? currentUser.uid : 'guest',
+      lang,
+      createdAt: serverTimestamp(),
+    });
+    return feedbackRef.id;
+  } catch (err) {
+    handleFirestoreError(err, OperationType.CREATE, path);
+  }
+}
+
+export function subscribeAdminFeedback(
+  onData: (items: SupportFeedback[]) => void,
+  onError: (err: Error) => void
+): Unsubscribe {
+  const q = query(collection(db, 'feedback'), limit(120));
+  return onSnapshot(
+    q,
+    (snapshot) => {
+      const rows = snapshot.docs.map((d) => ({
+        ...(d.data() as Omit<SupportFeedback, 'id'>),
+        id: d.id,
+      }));
+      onData(sortByCreatedAtDesc(rows));
+    },
+    (error) => {
+      try {
+        handleFirestoreError(error, OperationType.LIST, 'feedback (admin)');
+      } catch (wrapped) {
+        onError(wrapped instanceof Error ? wrapped : new Error(String(wrapped)));
+      }
+    }
+  );
+}
+
+export async function updateSupportFeedbackStatus(
+  feedbackId: string,
+  status: SupportFeedbackStatus
+): Promise<void> {
+  if (!isValidFirestoreId(feedbackId)) {
+    throw new Error('Invalid feedback identifier.');
+  }
+  const path = `feedback/${feedbackId}`;
+  try {
+    await updateDoc(doc(db, 'feedback', feedbackId), { status });
+  } catch (err) {
+    handleFirestoreError(err, OperationType.UPDATE, path);
+  }
+}
+
+export async function deleteSupportFeedback(feedbackId: string): Promise<void> {
+  if (!isValidFirestoreId(feedbackId)) {
+    throw new Error('Invalid feedback identifier.');
+  }
+  const path = `feedback/${feedbackId}`;
+  try {
+    await deleteDoc(doc(db, 'feedback', feedbackId));
+  } catch (err) {
+    handleFirestoreError(err, OperationType.DELETE, path);
+  }
 }
 

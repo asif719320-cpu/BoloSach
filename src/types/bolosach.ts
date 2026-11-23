@@ -24,6 +24,10 @@ export const LIMITS = {
   SECRET_MIN: 2,
   SECRET_MAX: 280,
   REPLY_MAX: 240,
+  EMAIL_MIN: 5,
+  EMAIL_MAX: 160,
+  FEEDBACK_MIN: 4,
+  FEEDBACK_MAX: 500,
 } as const;
 
 export function isValidFirestoreId(value: string | null | undefined): value is string {
@@ -135,6 +139,18 @@ export interface CreateChallengeInput {
   sideBImageUrl?: string;
   visibility: ChallengeVisibility;
   lang: LangCode;
+}
+
+export type SupportFeedbackStatus = 'open' | 'resolved';
+
+export interface SupportFeedback {
+  id: string;
+  email: string;
+  message: string;
+  status: SupportFeedbackStatus;
+  submitterUid: string;
+  lang: LangCode;
+  createdAt: Timestamp | null;
 }
 
 export const OWNER_ADMIN_EMAIL = 'asifrn0041@gmail.com';

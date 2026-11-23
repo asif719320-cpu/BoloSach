@@ -3,9 +3,13 @@ import { User } from 'firebase/auth';
 import {
   Activity,
   ArrowUpRight,
+  CheckCircle2,
   Eye,
   EyeOff,
   Lock,
+  Mail,
+  MessageSquare,
+  RotateCcw,
   Shield,
   Trash2,
   Users,
@@ -13,11 +17,14 @@ import {
 import {
   deleteChallengeById,
   deleteSecretResponse,
+  deleteSupportFeedback,
   subscribeAdminAllChallenges,
   subscribeAdminAllProfiles,
   subscribeAdminAllResponses,
   subscribeAdminAllVotes,
+  subscribeAdminFeedback,
   updateChallengeMeta,
+  updateSupportFeedbackStatus,
 } from '../services/bolosachService';
 import {
   Challenge,
@@ -25,6 +32,7 @@ import {
   LangCode,
   PublicProfile,
   SecretResponse,
+  SupportFeedback,
   VoteRecord,
 } from '../types/bolosach';
 
@@ -34,7 +42,7 @@ interface OwnerControlCenterProps {
   onOpenArena: (challengeId: string) => void;
 }
 
-type AdminView = 'votes' | 'challenges' | 'secrets' | 'creators';
+type AdminView = 'votes' | 'challenges' | 'secrets' | 'creators' | 'feedback';
 
 function formatTimestamp(ts: { toDate?: () => Date } | null): string {
   if (!ts || typeof ts.toDate !== 'function') return 'Just now';
@@ -57,6 +65,7 @@ export const OwnerControlCenter: React.FC<OwnerControlCenterProps> = ({
   const [allVotes, setAllVotes] = useState<VoteRecord[]>([]);
   const [allResponses, setAllResponses] = useState<SecretResponse[]>([]);
   const [allProfiles, setAllProfiles] = useState<PublicProfile[]>([]);
+  const [allFeedback, setAllFeedback] = useState<SupportFeedback[]>([]);
   const [challengeFilter, setChallengeFilter] = useState<'all' | 'active' | 'closed' | 'unlisted'>(
     'all'
   );
@@ -72,12 +81,14 @@ export const OwnerControlCenter: React.FC<OwnerControlCenterProps> = ({
     const unsubV = subscribeAdminAllVotes(setAllVotes, (e) => setErrorMsg(e.message));
     const unsubR = subscribeAdminAllResponses(setAllResponses, (e) => setErrorMsg(e.message));
     const unsubP = subscribeAdminAllProfiles(setAllProfiles, (e) => setErrorMsg(e.message));
+    const unsubF = subscribeAdminFeedback(setAllFeedback, (e) => setErrorMsg(e.message));
 
     return () => {
       unsubC();
       unsubV();
       unsubR();
       unsubP();
+      unsubF();
     };
   }, [authorized]);
 
@@ -103,6 +114,8 @@ export const OwnerControlCenter: React.FC<OwnerControlCenterProps> = ({
   const totalTruths = allChallenges.reduce((sum, c) => sum + c.responseCount, 0);
   const activeCount = allChallenges.filter((c) => c.status === 'active').length;
 
+  const openFeedbackCount = allFeedback.filter((f) => f.status === 'open').length;
+
   const labels =
     lang === 'ur'
       ? {
@@ -117,10 +130,16 @@ export const OwnerControlCenter: React.FC<OwnerControlCenterProps> = ({
           tabChallenges: 'تمام چیلنجز کنٹرول',
           tabSecrets: 'خفیہ پیغامات مانیٹر',
           tabCreators: 'یوزرز لسٹ',
+          tabFeedback: 'مسائل اور کمنٹس',
           emptyVotes: 'ابھی تک کوئی لائیو ووٹ ریکارڈ نہیں ہوا۔',
           emptyChallenges: 'ابھی تک کوئی چیلنج موجود نہیں۔',
           emptySecrets: 'ابھی تک کوئی خفیہ پیغام موصول نہیں ہوا۔',
           emptyCreators: 'ابھی تک کوئی کری ایٹر رجسٹر نہیں ہوا۔',
+          emptyFeedback: 'ابھی تک یوزرز کی طرف سے کوئی کمنٹ یا مسئلہ موصول نہیں ہوا۔',
+          statusOpen: 'نیا مسئلہ',
+          statusResolved: 'حل ہو گیا',
+          markResolved: 'حل ہو گیا',
+          reopenFeedback: 'دوبارہ کھولیں',
         }
       : {
           heading: 'Owner Live Control Center',
@@ -134,10 +153,16 @@ export const OwnerControlCenter: React.FC<OwnerControlCenterProps> = ({
           tabChallenges: 'All Challenges',
           tabSecrets: 'Secret Truths Monitor',
           tabCreators: 'Creators',
+          tabFeedback: 'Help Comments',
           emptyVotes: 'No live votes recorded yet.',
           emptyChallenges: 'No challenges created yet.',
           emptySecrets: 'No secret replies submitted yet.',
           emptyCreators: 'No creators registered yet.',
+          emptyFeedback: 'No user comments or issue reports submitted yet.',
+          statusOpen: 'Open',
+          statusResolved: 'Resolved',
+          markResolved: 'Mark Resolved',
+          reopenFeedback: 'Reopen',
         };
 
   return (
@@ -242,6 +267,30 @@ export const OwnerControlCenter: React.FC<OwnerControlCenterProps> = ({
         >
           <Users className="w-3.5 h-3.5" />
           <span>{labels.tabCreators}</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setView('feedback')}
+          className={`inline-flex items-center gap-1.5 min-h-[40px] px-4 rounded-xl text-xs font-semibold transition-colors cursor-pointer ${
+            view === 'feedback'
+              ? 'bg-neutral-950 text-white'
+              : 'text-neutral-600 hover:bg-neutral-100 hover:text-neutral-950'
+          }`}
+        >
+          <MessageSquare className="w-3.5 h-3.5" />
+          <span>{labels.tabFeedback}</span>
+          {openFeedbackCount > 0 && (
+            <span
+              className={`font-mono-nums text-[11px] px-1.5 py-0.5 rounded-md ${
+                view === 'feedback'
+                  ? 'bg-emerald-500 text-white'
+                  : 'bg-amber-100 text-amber-800'
+              }`}
+            >
+              {openFeedbackCount}
+            </span>
+          )}
         </button>
       </div>
 
@@ -465,6 +514,88 @@ export const OwnerControlCenter: React.FC<OwnerControlCenterProps> = ({
                   </span>
                 </div>
               ))}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* View 5: User Issues & Comments (Gmail + Feedback) */}
+      {view === 'feedback' && (
+        <div className="bg-white border border-neutral-200 rounded-2xl p-5 sm:p-6">
+          {allFeedback.length === 0 ? (
+            <p className="text-sm text-neutral-500">{labels.emptyFeedback}</p>
+          ) : (
+            <div className="divide-y divide-neutral-100">
+              {allFeedback.map((item) => {
+                const isResolved = item.status === 'resolved';
+                return (
+                  <div
+                    key={item.id}
+                    className="py-4 flex flex-col sm:flex-row sm:items-start justify-between gap-4"
+                  >
+                    <div className="min-w-0 space-y-1.5">
+                      <div className="flex flex-wrap items-center gap-2 text-xs">
+                        <span
+                          className={`px-2 py-0.5 rounded-md font-semibold ${
+                            isResolved
+                              ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                              : 'bg-amber-50 text-amber-800 border border-amber-200'
+                          }`}
+                        >
+                          {isResolved ? labels.statusResolved : labels.statusOpen}
+                        </span>
+                        <a
+                          href={`mailto:${item.email}`}
+                          dir="ltr"
+                          className="inline-flex items-center gap-1 font-semibold text-neutral-900 hover:text-emerald-700 underline underline-offset-2 break-all"
+                        >
+                          <Mail className="w-3.5 h-3.5 shrink-0 text-neutral-500" />
+                          <span>{item.email}</span>
+                        </a>
+                        <span aria-hidden="true" className="text-neutral-300">
+                          ·
+                        </span>
+                        <span className="font-mono-nums text-neutral-500">
+                          {formatTimestamp(item.createdAt)}
+                        </span>
+                      </div>
+
+                      <p className="text-sm text-neutral-900 leading-relaxed whitespace-pre-wrap break-words">
+                        {item.message}
+                      </p>
+                    </div>
+
+                    <div className="flex items-center gap-2 shrink-0">
+                      <button
+                        type="button"
+                        onClick={() =>
+                          void updateSupportFeedbackStatus(
+                            item.id,
+                            isResolved ? 'open' : 'resolved'
+                          )
+                        }
+                        className="inline-flex items-center gap-1.5 min-h-[36px] px-3 rounded-lg border border-neutral-200 hover:bg-neutral-50 text-xs font-semibold text-neutral-800 cursor-pointer"
+                      >
+                        {isResolved ? (
+                          <RotateCcw className="w-3.5 h-3.5" />
+                        ) : (
+                          <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                        )}
+                        <span>{isResolved ? labels.reopenFeedback : labels.markResolved}</span>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => void deleteSupportFeedback(item.id)}
+                        className="min-h-[36px] min-w-[36px] flex items-center justify-center rounded-lg border border-red-200 text-red-600 hover:bg-red-50 cursor-pointer"
+                        aria-label="Delete comment"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           )}
         </div>

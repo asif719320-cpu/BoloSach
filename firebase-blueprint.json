@@ -284,6 +284,57 @@
         "creatorReply",
         "createdAt"
       ]
+    },
+    "SupportFeedback": {
+      "title": "SupportFeedback",
+      "description": "User-submitted issue reports and support comments with Gmail contact, readable strictly by admin.",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "email": {
+          "type": "string",
+          "format": "email",
+          "minLength": 5,
+          "maxLength": 160
+        },
+        "message": {
+          "type": "string",
+          "minLength": 4,
+          "maxLength": 500
+        },
+        "status": {
+          "type": "string",
+          "enum": ["open", "resolved"]
+        },
+        "submitterUid": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "lang": {
+          "type": "string",
+          "enum": ["en", "ur"]
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "email",
+        "message",
+        "status",
+        "submitterUid",
+        "lang",
+        "createdAt"
+      ]
     }
   },
   "firestore": {
@@ -306,6 +357,10 @@
     "/challenges/{challengeId}/responses/{responseId}": {
       "schema": { "$ref": "#/entities/SecretResponse" },
       "description": "Anonymous secret responses to polls, private to the challenge creator unless showcased."
+    },
+    "/feedback/{feedbackId}": {
+      "schema": { "$ref": "#/entities/SupportFeedback" },
+      "description": "Support comments and issue reports with Gmail contact, strictly readable by the admin."
     }
   }
 }
