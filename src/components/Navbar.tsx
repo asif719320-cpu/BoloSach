@@ -40,17 +40,17 @@ export const Navbar: React.FC<NavbarProps> = ({
   return (
     <>
       <header className="sticky top-0 z-30 bg-[#F7F7F4]/90 backdrop-blur-md border-b border-neutral-200/80">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 h-14 md:h-16 flex items-center justify-between gap-8">
+        <div className="max-w-7xl mx-auto px-3 sm:px-6 h-14 md:h-16 flex items-center justify-between gap-2 sm:gap-6">
           {/* Zone 1: Single-element brand emblem + wordmark */}
           <button
             type="button"
             onClick={() => onSelectTab('feed')}
-            className="inline-flex items-center gap-2.5 text-xl md:text-2xl font-extrabold tracking-tight text-neutral-950 whitespace-nowrap shrink-0 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-600 rounded-md"
+            className="inline-flex items-center gap-2 text-lg sm:text-xl md:text-2xl font-extrabold tracking-tight text-neutral-950 whitespace-nowrap shrink-0 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-600 rounded-md"
           >
             <img
               src={APP_ICON}
               alt="BoloSach"
-              className="w-8 h-8 rounded-lg object-cover border border-neutral-200 shrink-0"
+              className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg object-cover border border-neutral-200 shrink-0"
             />
             <span>{t.brand}</span>
           </button>

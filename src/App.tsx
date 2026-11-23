@@ -14,6 +14,7 @@ import { CreateChallengeModal } from './components/CreateChallengeModal';
 import { CreatorStudio } from './components/CreatorStudio';
 import { AppTab, Navbar } from './components/Navbar';
 import { OfflineIndicator } from './components/OfflineIndicator';
+import { PWAInstallButton } from './components/PWAInstallButton';
 import { CATEGORY_ARTWORK } from './lib/categoryArt';
 import { auth, googleProvider } from './lib/firebase';
 import { COPY, STARTER_TEMPLATES } from './lib/i18n';
@@ -735,6 +736,7 @@ export default function App() {
                     <span>{appLinkCopied ? t.appLinkCopied : t.copyAppLink}</span>
                   </button>
                 </div>
+                <PWAInstallButton lang={lang} variant="full" />
               </div>
 
               {/* Starter Prompts Card */}
