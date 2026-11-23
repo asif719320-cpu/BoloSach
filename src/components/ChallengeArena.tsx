@@ -14,6 +14,7 @@ import {
 import { CATEGORY_ARTWORK } from '../lib/categoryArt';
 import { Translations } from '../lib/i18n';
 import {
+  APK_DOWNLOAD_URL,
   buildChallengeShareUrl,
   downloadShareCardImage,
   getWhatsAppShareHref,
@@ -494,13 +495,24 @@ export const ChallengeArena: React.FC<ChallengeArenaProps> = ({
             <h2 className="text-xl font-bold mb-1">{t.viralPromptTitle}</h2>
             <p className="text-sm text-neutral-300 max-w-lg">{t.viralPromptDesc}</p>
           </div>
-          <button
-            type="button"
-            onClick={onOpenCreateOrSignIn}
-            className="min-h-[48px] px-6 py-3 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-neutral-950 text-sm font-bold whitespace-nowrap shrink-0 transition-colors cursor-pointer"
-          >
-            {t.createMyOwnBtn}
-          </button>
+          <div className="flex flex-wrap items-center gap-2.5 shrink-0">
+            <button
+              type="button"
+              onClick={onOpenCreateOrSignIn}
+              className="min-h-[48px] px-6 py-3 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-neutral-950 text-sm font-bold whitespace-nowrap shrink-0 transition-colors cursor-pointer"
+            >
+              {t.createMyOwnBtn}
+            </button>
+            <a
+              href={APK_DOWNLOAD_URL}
+              download="BoloSach.apk"
+              rel="noopener noreferrer"
+              className="inline-flex items-center justify-center gap-2 min-h-[48px] px-5 py-3 rounded-xl border border-white/25 bg-white/10 hover:bg-white/20 text-white text-sm font-bold whitespace-nowrap shrink-0 transition-colors"
+            >
+              <Download className="w-4 h-4 text-emerald-400" />
+              <span>{lang === 'ur' ? 'ایپ ڈاؤن لوڈ (APK)' : 'Download APK'}</span>
+            </a>
+          </div>
         </motion.div>
       )}
 

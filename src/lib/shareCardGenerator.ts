@@ -319,9 +319,10 @@ export async function downloadShareCardImage(challenge: Challenge): Promise<void
   }
 
   // Footer CTA
+  const siteHost = typeof window !== 'undefined' && window.location.host ? window.location.host : 'bolosach.vercel.app';
   ctx.fillStyle = '#4B5563';
-  ctx.font = '600 32px "Plus Jakarta Sans", sans-serif';
-  ctx.fillText('Vote in 1 click on BoloSach · Share on WhatsApp Status', 176, 1236);
+  ctx.font = '600 30px "Plus Jakarta Sans", sans-serif';
+  ctx.fillText(`Vote & start your own battle at ${siteHost}`, 176, 1236);
 
   const dataUrl = canvas.toDataURL('image/png', 1.0);
   const link = document.createElement('a');
