@@ -41,11 +41,20 @@ export function openWhatsAppShare(challenge: Challenge, lang: LangCode): void {
   document.body.removeChild(anchor);
 }
 
+export function getFacebookShareHref(challengeId: string): string {
+  const url = buildChallengeShareUrl(challengeId);
+  return `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`;
+}
+
 export const APK_DOWNLOAD_URL =
   'https://github.com/asif719320-cpu/BoloSach/releases/download/v1.0/BoloSach.apk';
 
 export function getAppShareUrl(): string {
   return window.location.origin;
+}
+
+export function getAppFacebookShareHref(): string {
+  return `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(getAppShareUrl())}`;
 }
 
 export function getAppWhatsAppInviteHref(lang: LangCode): string {

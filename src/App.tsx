@@ -19,7 +19,11 @@ import { SupportFeedbackCard } from './components/SupportFeedbackCard';
 import { CATEGORY_ARTWORK } from './lib/categoryArt';
 import { auth, googleProvider } from './lib/firebase';
 import { COPY, STARTER_TEMPLATES } from './lib/i18n';
-import { getAppShareUrl, getAppWhatsAppInviteHref } from './lib/shareCardGenerator';
+import {
+  getAppFacebookShareHref,
+  getAppShareUrl,
+  getAppWhatsAppInviteHref,
+} from './lib/shareCardGenerator';
 import {
   ensureUserDocuments,
   subscribePublicChallenges,
@@ -741,19 +745,30 @@ export default function App() {
                     <Share2 className="w-3.5 h-3.5" />
                     <span>{t.shareWhatsApp}</span>
                   </a>
-                  <button
-                    type="button"
-                    onClick={() => void handleCopyAppLink()}
-                    className="inline-flex items-center justify-center gap-1.5 min-h-[40px] px-3 rounded-xl border border-neutral-200 hover:bg-neutral-50 text-neutral-800 text-xs font-semibold transition-colors whitespace-nowrap cursor-pointer"
+                  <a
+                    href={getAppFacebookShareHref()}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center justify-center gap-1.5 min-h-[40px] px-3 rounded-xl bg-[#1877F2] hover:bg-[#166FE5] text-white text-xs font-semibold transition-colors whitespace-nowrap"
                   >
-                    {appLinkCopied ? (
-                      <Check className="w-3.5 h-3.5 text-emerald-600" />
-                    ) : (
-                      <Copy className="w-3.5 h-3.5" />
-                    )}
-                    <span>{appLinkCopied ? t.appLinkCopied : t.copyAppLink}</span>
-                  </button>
+                    <svg className="w-3.5 h-3.5 fill-current" viewBox="0 0 24 24" aria-hidden="true">
+                      <path d="M13.5 22v-8h2.7l.4-3h-3.1V9.1c0-.9.3-1.5 1.6-1.5h1.7V5c-.3 0-1.3-.1-2.4-.1-2.4 0-4 1.4-4 4.1V11H8v3h2.4v8h3.1z" />
+                    </svg>
+                    <span>{t.shareFacebook}</span>
+                  </a>
                 </div>
+                <button
+                  type="button"
+                  onClick={() => void handleCopyAppLink()}
+                  className="w-full inline-flex items-center justify-center gap-1.5 min-h-[40px] px-3 rounded-xl border border-neutral-200 hover:bg-neutral-50 text-neutral-800 text-xs font-semibold transition-colors whitespace-nowrap cursor-pointer"
+                >
+                  {appLinkCopied ? (
+                    <Check className="w-3.5 h-3.5 text-emerald-600" />
+                  ) : (
+                    <Copy className="w-3.5 h-3.5" />
+                  )}
+                  <span>{appLinkCopied ? t.appLinkCopied : t.copyAppLink}</span>
+                </button>
                 <PWAInstallButton lang={lang} variant="full" />
               </div>
 

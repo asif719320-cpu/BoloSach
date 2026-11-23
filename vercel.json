@@ -1,4 +1,23 @@
 {
+  "functions": {
+    "api/og.ts": {
+      "includeFiles": "api/fonts/**"
+    }
+  },
+  "rewrites": [
+    {
+      "source": "/",
+      "has": [
+        { "type": "query", "key": "c" },
+        {
+          "type": "header",
+          "key": "user-agent",
+          "value": ".*(facebookexternalhit|Facebot|facebot|meta-externalagent|Meta-ExternalAgent|facebookcatalog|WhatsApp|whatsapp|Twitterbot|twitterbot|TelegramBot|Discordbot|LinkedInBot|Slackbot|Pinterest|Applebot|Embedly|vkShare|Snapchat).*"
+        }
+      ],
+      "destination": "/api/share"
+    }
+  ],
   "headers": [
     {
       "source": "/index.html",

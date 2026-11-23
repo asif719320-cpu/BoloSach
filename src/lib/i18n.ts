@@ -33,6 +33,7 @@ export interface Translations {
   createMyOwnBtn: string;
   oneClickHint: string;
   shareWhatsApp: string;
+  shareFacebook: string;
   shareAppBtn: string;
   inviteFriendsTitle: string;
   inviteFriendsDesc: string;
@@ -154,6 +155,7 @@ export const COPY: Record<LangCode, Translations> = {
     createMyOwnBtn: 'Create My Challenge',
     oneClickHint: '1-click vote · No account required to vote',
     shareWhatsApp: 'Share on WhatsApp',
+    shareFacebook: 'Facebook',
     shareAppBtn: 'Share App',
     inviteFriendsTitle: 'Invite Friends to BoloSach',
     inviteFriendsDesc:
@@ -292,6 +294,7 @@ export const COPY: Record<LangCode, Translations> = {
     createMyOwnBtn: 'اپنا چیلنج بنائیں',
     oneClickHint: '1 کلک ووٹ · ووٹ دینے کے لیے لاگ ان ضروری نہیں',
     shareWhatsApp: 'WhatsApp شیئر',
+    shareFacebook: 'فیس بک شیئر',
     shareAppBtn: 'ایپ شیئر کریں',
     inviteFriendsTitle: 'دوستوں کو BoloSach پر بلائیں',
     inviteFriendsDesc:

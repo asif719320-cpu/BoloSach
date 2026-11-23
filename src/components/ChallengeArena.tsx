@@ -17,6 +17,7 @@ import {
   APK_DOWNLOAD_URL,
   buildChallengeShareUrl,
   downloadShareCardImage,
+  getFacebookShareHref,
   getWhatsAppShareHref,
 } from '../lib/shareCardGenerator';
 import {
@@ -88,6 +89,18 @@ export const ChallengeArena: React.FC<ChallengeArenaProps> = ({
     );
     return () => unsub();
   }, [challengeId]);
+
+  useEffect(() => {
+    if (!challenge) return;
+    const prevTitle = document.title;
+    document.title =
+      challenge.type === 'secret_poll'
+        ? `${challenge.title} | BoloSach`
+        : `${challenge.title} — ${challenge.sideALabel} vs ${challenge.sideBLabel} | BoloSach`;
+    return () => {
+      document.title = prevTitle;
+    };
+  }, [challenge?.id, challenge?.title, challenge?.sideALabel, challenge?.sideBLabel, challenge?.type]);
 
   useEffect(() => {
     let active = true;
@@ -452,6 +465,18 @@ export const ChallengeArena: React.FC<ChallengeArenaProps> = ({
             >
               <Share2 className="w-4 h-4" />
               <span>{t.shareWhatsApp}</span>
+            </a>
+
+            <a
+              href={getFacebookShareHref(challenge.id)}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 min-h-[44px] px-4 py-2 rounded-xl bg-[#1877F2] hover:bg-[#166FE5] text-white text-sm font-semibold transition-colors"
+            >
+              <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M13.5 22v-8h2.7l.4-3h-3.1V9.1c0-.9.3-1.5 1.6-1.5h1.7V5c-.3 0-1.3-.1-2.4-.1-2.4 0-4 1.4-4 4.1V11H8v3h2.4v8h3.1z" />
+              </svg>
+              <span>{t.shareFacebook}</span>
             </a>
 
             <button
