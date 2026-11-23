@@ -6,7 +6,7 @@ export function buildChallengeShareUrl(challengeId: string): string {
   if (!isValidFirestoreId(challengeId)) {
     return origin;
   }
-  return `${origin}/?c=${encodeURIComponent(challengeId)}`;
+  return `${origin}/c/${encodeURIComponent(challengeId)}`;
 }
 
 export function buildWhatsAppShareText(challenge: Challenge, lang: LangCode): string {
@@ -15,10 +15,10 @@ export function buildWhatsAppShareText(challenge: Challenge, lang: LangCode): st
   return lang === 'ur'
     ? challenge.type === 'secret_poll'
       ? `🤫 *BoloSach خفیہ پول*\n"${challenge.title}"\n\nاپنی سچی رائے خفیہ طور پر بھیجیں (نام ظاہر نہیں ہوگا):\n${shareUrl}`
-      : `🔥 *BoloSach 1v1 مقابلہ*\n"${challenge.title}"\n\n🟢 ${challenge.sideALabel} (${challenge.votesA}) vs 🟠 ${challenge.sideBLabel} (${challenge.votesB})\nکل ووٹس: ${totalVotes}\n\n1 کلک میں ووٹ دیں:\n${shareUrl}`
+      : `🔥 *BoloSach 1v1 مقابلہ*\n*${challenge.sideALabel}* 🆚 *${challenge.sideBLabel}*\n"${challenge.title}" (${totalVotes} ووٹس)\n\nتصویری کارڈ پر کلک کر کے ووٹ دیں:\n${shareUrl}`
     : challenge.type === 'secret_poll'
       ? `🤫 *BoloSach Secret Poll*\n"${challenge.title}"\n\nSend me an anonymous honest reply (100% private):\n${shareUrl}`
-      : `🔥 *BoloSach 1v1 Battle*\n"${challenge.title}"\n\n🟢 ${challenge.sideALabel} (${challenge.votesA}) vs 🟠 ${challenge.sideBLabel} (${challenge.votesB})\nTotal votes: ${totalVotes}\n\nVote in 1 click:\n${shareUrl}`;
+      : `🔥 *BoloSach 1v1 Battle*\n*${challenge.sideALabel}* 🆚 *${challenge.sideBLabel}*\n"${challenge.title}" (${totalVotes} votes)\n\nTap the card to vote in 1 click:\n${shareUrl}`;
 }
 
 export function getWhatsAppShareHref(challenge: Challenge, lang: LangCode): string {

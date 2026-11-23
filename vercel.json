@@ -6,16 +6,12 @@
   },
   "rewrites": [
     {
-      "source": "/",
-      "has": [
-        { "type": "query", "key": "c" },
-        {
-          "type": "header",
-          "key": "user-agent",
-          "value": ".*(facebookexternalhit|Facebot|facebot|meta-externalagent|Meta-ExternalAgent|facebookcatalog|WhatsApp|whatsapp|Twitterbot|twitterbot|TelegramBot|Discordbot|LinkedInBot|Slackbot|Pinterest|Applebot|Embedly|vkShare|Snapchat).*"
-        }
-      ],
-      "destination": "/api/share"
+      "source": "/c/:id",
+      "destination": "/api/share?c=:id"
+    },
+    {
+      "source": "/c/:id/",
+      "destination": "/api/share?c=:id"
     }
   ],
   "headers": [

@@ -61,6 +61,10 @@ const FEATURED_ARENAS: { category: ChallengeCategory; titleEn: string; titleUr: 
 
 function getInitialChallengeIdFromUrl(): string | null {
   try {
+    const pathMatch = /^\/c\/([a-zA-Z0-9_-]+)\/?$/.exec(window.location.pathname);
+    if (pathMatch && isValidFirestoreId(pathMatch[1])) {
+      return pathMatch[1];
+    }
     const params = new URLSearchParams(window.location.search);
     const id = params.get('c')?.trim();
     return isValidFirestoreId(id) ? id : null;

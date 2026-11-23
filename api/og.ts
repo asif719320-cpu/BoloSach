@@ -12,7 +12,7 @@ import {
 
 const WIDTH = 1200;
 const HEIGHT = 630;
-const PHOTO_SIZE = 256;
+const PHOTO_SIZE = 276;
 const PHOTO_RADIUS = 24;
 const DATA_IMAGE_REGEX = /^data:image\/(jpeg|png|webp);base64,([A-Za-z0-9+/=]+)$/;
 
@@ -257,40 +257,40 @@ function buildBattleSvg(
   ${titleSvg}
 
   <!-- Left Fighter Card (Side A) -->
-  <rect x="74" y="176" width="476" height="384" rx="28" fill="#0B221C" stroke="#10B981" stroke-width="3"/>
-  <rect x="184" y="198" width="${PHOTO_SIZE}" height="${PHOTO_SIZE}" rx="${PHOTO_RADIUS}" fill="#064E3B" stroke="#34D399" stroke-width="2"/>
+  <rect x="74" y="172" width="476" height="392" rx="28" fill="#0B221C" stroke="#10B981" stroke-width="3"/>
+  <rect x="174" y="190" width="${PHOTO_SIZE}" height="${PHOTO_SIZE}" rx="${PHOTO_RADIUS}" fill="#064E3B" stroke="#34D399" stroke-width="2"/>
   ${
     hasPhotoA
       ? ''
-      : `<text x="312" y="362" text-anchor="middle" fill="#6EE7B7" font-family="${fontForText(
+      : `<text x="312" y="364" text-anchor="middle" fill="#6EE7B7" font-family="${fontForText(
           labelA
         )}" font-size="110" font-weight="700">${initialA}</text>`
   }
-  <rect x="196" y="210" width="44" height="34" rx="10" fill="#059669"/>
-  <text x="218" y="234" text-anchor="middle" fill="#FFFFFF" font-family="Noto Sans, sans-serif" font-size="20" font-weight="700">A</text>
-  <text x="312" y="496" text-anchor="middle" fill="#FFFFFF" font-family="${fontForText(
+  <rect x="186" y="202" width="44" height="34" rx="10" fill="#059669"/>
+  <text x="208" y="226" text-anchor="middle" fill="#FFFFFF" font-family="Noto Sans, sans-serif" font-size="20" font-weight="700">A</text>
+  <text x="312" y="504" text-anchor="middle" fill="#FFFFFF" font-family="${fontForText(
     labelA
   )}" font-size="28" font-weight="700">${escapeXml(labelA)}</text>
-  <text x="312" y="534" text-anchor="middle" fill="#34D399" font-family="Noto Sans, sans-serif" font-size="20" font-weight="700">${escapeXml(
+  <text x="312" y="540" text-anchor="middle" fill="#34D399" font-family="Noto Sans, sans-serif" font-size="20" font-weight="700">${escapeXml(
     subA
   )}</text>
 
   <!-- Right Fighter Card (Side B) -->
-  <rect x="650" y="176" width="476" height="384" rx="28" fill="#23140B" stroke="#F97316" stroke-width="3"/>
-  <rect x="760" y="198" width="${PHOTO_SIZE}" height="${PHOTO_SIZE}" rx="${PHOTO_RADIUS}" fill="#7C2D12" stroke="#FB923C" stroke-width="2"/>
+  <rect x="650" y="172" width="476" height="392" rx="28" fill="#23140B" stroke="#F97316" stroke-width="3"/>
+  <rect x="750" y="190" width="${PHOTO_SIZE}" height="${PHOTO_SIZE}" rx="${PHOTO_RADIUS}" fill="#7C2D12" stroke="#FB923C" stroke-width="2"/>
   ${
     hasPhotoB
       ? ''
-      : `<text x="888" y="362" text-anchor="middle" fill="#FDBA74" font-family="${fontForText(
+      : `<text x="888" y="364" text-anchor="middle" fill="#FDBA74" font-family="${fontForText(
           labelB
         )}" font-size="110" font-weight="700">${initialB}</text>`
   }
-  <rect x="772" y="210" width="44" height="34" rx="10" fill="#EA580C"/>
-  <text x="794" y="234" text-anchor="middle" fill="#FFFFFF" font-family="Noto Sans, sans-serif" font-size="20" font-weight="700">B</text>
-  <text x="888" y="496" text-anchor="middle" fill="#FFFFFF" font-family="${fontForText(
+  <rect x="762" y="202" width="44" height="34" rx="10" fill="#EA580C"/>
+  <text x="784" y="226" text-anchor="middle" fill="#FFFFFF" font-family="Noto Sans, sans-serif" font-size="20" font-weight="700">B</text>
+  <text x="888" y="504" text-anchor="middle" fill="#FFFFFF" font-family="${fontForText(
     labelB
   )}" font-size="28" font-weight="700">${escapeXml(labelB)}</text>
-  <text x="888" y="534" text-anchor="middle" fill="#FB923C" font-family="Noto Sans, sans-serif" font-size="20" font-weight="700">${escapeXml(
+  <text x="888" y="540" text-anchor="middle" fill="#FB923C" font-family="Noto Sans, sans-serif" font-size="20" font-weight="700">${escapeXml(
     subB
   )}</text>
 
@@ -303,13 +303,15 @@ function buildBattleSvg(
 </svg>`;
 }
 
-export async function renderChallengeOgPng(challenge: ChallengePreview | null): Promise<Buffer> {
+export async function renderChallengeOgImage(challenge: ChallengePreview | null): Promise<Buffer> {
   if (!challenge) {
     const resvg = new Resvg(buildBrandSvg(), {
       fitTo: { mode: 'width', value: WIDTH },
       font: { fontFiles: FONT_FILES, loadSystemFonts: false },
     });
-    return Buffer.from(resvg.render().asPng());
+    return sharp(Buffer.from(resvg.render().asPng()))
+      .jpeg({ quality: 88, mozjpeg: true })
+      .toBuffer();
   }
 
   if (challenge.type === 'secret_poll') {
@@ -317,7 +319,9 @@ export async function renderChallengeOgPng(challenge: ChallengePreview | null): 
       fitTo: { mode: 'width', value: WIDTH },
       font: { fontFiles: FONT_FILES, loadSystemFonts: false },
     });
-    return Buffer.from(resvg.render().asPng());
+    return sharp(Buffer.from(resvg.render().asPng()))
+      .jpeg({ quality: 88, mozjpeg: true })
+      .toBuffer();
   }
 
   const [photoA, photoB] = await Promise.all([
@@ -334,14 +338,14 @@ export async function renderChallengeOgPng(challenge: ChallengePreview | null): 
 
   const overlays: Array<{ input: Buffer; left: number; top: number }> = [];
   if (photoA) {
-    overlays.push({ input: photoA, left: 184, top: 198 });
+    overlays.push({ input: photoA, left: 174, top: 190 });
   }
   if (photoB) {
-    overlays.push({ input: photoB, left: 760, top: 198 });
+    overlays.push({ input: photoB, left: 750, top: 190 });
   }
 
   if (overlays.length === 0) {
-    return basePng;
+    return sharp(basePng).jpeg({ quality: 88, mozjpeg: true }).toBuffer();
   }
 
   // Re-composite the A/B corner badges on top of the photos cleanly
@@ -349,12 +353,12 @@ export async function renderChallengeOgPng(challenge: ChallengePreview | null): 
     `<svg width="${WIDTH}" height="${HEIGHT}" xmlns="http://www.w3.org/2000/svg">
       ${
         photoA
-          ? '<rect x="196" y="210" width="44" height="34" rx="10" fill="#059669"/><text x="218" y="234" text-anchor="middle" fill="#FFFFFF" font-family="Noto Sans, sans-serif" font-size="20" font-weight="700">A</text>'
+          ? '<rect x="186" y="202" width="44" height="34" rx="10" fill="#059669"/><text x="208" y="226" text-anchor="middle" fill="#FFFFFF" font-family="Noto Sans, sans-serif" font-size="20" font-weight="700">A</text>'
           : ''
       }
       ${
         photoB
-          ? '<rect x="772" y="210" width="44" height="34" rx="10" fill="#EA580C"/><text x="794" y="234" text-anchor="middle" fill="#FFFFFF" font-family="Noto Sans, sans-serif" font-size="20" font-weight="700">B</text>'
+          ? '<rect x="762" y="202" width="44" height="34" rx="10" fill="#EA580C"/><text x="784" y="226" text-anchor="middle" fill="#FFFFFF" font-family="Noto Sans, sans-serif" font-size="20" font-weight="700">B</text>'
           : ''
       }
     </svg>`
@@ -370,7 +374,7 @@ export async function renderChallengeOgPng(challenge: ChallengePreview | null): 
 
   return sharp(basePng)
     .composite([...overlays, { input: badgePng, left: 0, top: 0 }])
-    .png()
+    .jpeg({ quality: 88, mozjpeg: true })
     .toBuffer();
 }
 
@@ -378,15 +382,15 @@ export default async function handler(req: ApiRequest, res: ApiResponse): Promis
   try {
     const challengeId = extractChallengeId(req);
     const challenge = challengeId ? await fetchChallengeForPreview(challengeId) : null;
-    const pngBuffer = await renderChallengeOgPng(challenge);
+    const imageBuffer = await renderChallengeOgImage(challenge);
 
     res.status(200);
-    res.setHeader('Content-Type', 'image/png');
+    res.setHeader('Content-Type', 'image/jpeg');
     res.setHeader(
       'Cache-Control',
       'public, max-age=300, s-maxage=300, stale-while-revalidate=600'
     );
-    res.send(pngBuffer);
+    res.send(imageBuffer);
   } catch {
     res.status(500);
     res.setHeader('Content-Type', 'text/plain; charset=utf-8');
