@@ -41,6 +41,9 @@ export function openWhatsAppShare(challenge: Challenge, lang: LangCode): void {
   document.body.removeChild(anchor);
 }
 
+export const APK_DOWNLOAD_URL =
+  'https://github.com/asif719320-cpu/BoloSach/releases/download/v1.0/BoloSach.apk';
+
 export function getAppShareUrl(): string {
   return window.location.origin;
 }
@@ -49,8 +52,8 @@ export function getAppWhatsAppInviteHref(lang: LangCode): string {
   const appUrl = getAppShareUrl();
   const text =
     lang === 'ur'
-      ? `🔥 *BoloSach ایپ ٹرائی کریں!*\nاپنے دوستوں کے ساتھ تصویروں والے *1v1 فوٹو مقابلے* اور *خفیہ پولز* بنائیں اور 1 کلک میں WhatsApp پر ووٹ لیں:\n${appUrl}`
-      : `🔥 *Try BoloSach!*\nCreate *1v1 photo battles* and *anonymous secret polls* with your friends and share 1-click voting links on WhatsApp:\n${appUrl}`;
+      ? `🔥 *BoloSach ایپ ٹرائی کریں!*\nاپنے دوستوں کے ساتھ تصویروں والے *1v1 فوٹو مقابلے* اور *خفیہ پولز* بنائیں:\n${appUrl}\n\n📲 Android APK ڈاؤن لوڈ کریں:\n${APK_DOWNLOAD_URL}`
+      : `🔥 *Try BoloSach!*\nCreate *1v1 photo battles* and *anonymous secret polls* with your friends:\n${appUrl}\n\n📲 Download Android APK:\n${APK_DOWNLOAD_URL}`;
   const encoded = encodeURIComponent(text);
   const isMobile =
     typeof navigator !== 'undefined' && /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
