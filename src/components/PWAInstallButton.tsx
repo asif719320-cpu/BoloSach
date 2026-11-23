@@ -53,11 +53,11 @@ export const PWAInstallButton: React.FC<PWAInstallButtonProps> = ({
   const buttonLabel =
     variant === 'full'
       ? lang === 'ur'
-        ? 'ایپ ڈاؤن لوڈ / انسٹال کریں'
-        : 'Download & Install App'
+        ? 'ایپ ڈاؤن لوڈ کریں'
+        : 'Download App'
       : lang === 'ur'
         ? 'ڈاؤن لوڈ'
-        : 'Install';
+        : 'Download';
 
   return (
     <>
