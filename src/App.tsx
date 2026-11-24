@@ -148,6 +148,18 @@ export default function App() {
   }, [lang]);
 
   useEffect(() => {
+    if (arenaChallengeId) return;
+    const robotsEl = document.querySelector<HTMLMetaElement>('meta[name="robots"]');
+    if (!robotsEl) return;
+    robotsEl.setAttribute(
+      'content',
+      activeTab === 'studio'
+        ? 'noindex, nofollow'
+        : 'index, follow, max-image-preview:large, max-snippet:-1'
+    );
+  }, [activeTab, arenaChallengeId]);
+
+  useEffect(() => {
     const onPopState = () => {
       setArenaChallengeId(getInitialChallengeIdFromUrl());
     };
@@ -805,6 +817,24 @@ export default function App() {
               </div>
             </aside>
           </section>
+
+          <footer className="bg-white border border-neutral-200 rounded-2xl p-6 text-xs text-neutral-600 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div className="space-y-1 max-w-2xl">
+              <p className="font-bold text-neutral-950 text-sm">
+                {lang === 'ur'
+                  ? 'BoloSach — مفت آن لائن پول، 1v1 فوٹو مقابلے اور خفیہ سوالات'
+                  : 'BoloSach — Free Online Poll Maker, 1v1 Photo Battles & Secret Polls'}
+              </p>
+              <p className="leading-relaxed">
+                {lang === 'ur'
+                  ? 'صرف 10 سیکنڈ میں اپنا آن لائن پول، کرکٹ یا دوستوں کا 1v1 فوٹو مقابلہ بنائیں اور WhatsApp یا Facebook پر شیئر کریں۔ دوست بغیر سائن اپ کے 1 کلک میں ووٹ دے سکتے ہیں۔'
+                  : 'Create instant online polls, 1v1 photo battles, and anonymous secret truth boxes in 10 seconds. Share anywhere on WhatsApp or Facebook for 1-click voting with no sign-up required.'}
+              </p>
+            </div>
+            <p className="font-mono-nums text-[11px] text-neutral-500 shrink-0">
+              bolosach.vercel.app
+            </p>
+          </footer>
         </main>
       )}
 

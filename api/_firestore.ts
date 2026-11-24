@@ -28,6 +28,7 @@ export interface ChallengePreview {
   responseCount: number;
   creatorHandle: string;
   creatorName: string;
+  visibility: 'public' | 'unlisted';
   lang: 'en' | 'ur';
   updateTime: string;
 }
@@ -178,6 +179,7 @@ export async function fetchChallengeForPreview(
       responseCount: intField(fields, 'responseCount'),
       creatorHandle: strField(fields, 'creatorHandle', 'bolosach'),
       creatorName: strField(fields, 'creatorName', 'Creator'),
+      visibility: visibility === 'unlisted' ? 'unlisted' : 'public',
       lang: strField(fields, 'lang', 'en') === 'ur' ? 'ur' : 'en',
       updateTime: doc.updateTime || '',
     };
@@ -187,3 +189,71 @@ export async function fetchChallengeForPreview(
     clearTimeout(timer);
   }
 }
+
+export interface SitemapEntry {
+  id: string;
+  updateTime: string;
+}
+
+interface RunQueryRow {
+  document?: {
+    name?: string;
+    updateTime?: string;
+    fields?: Record<string, FirestoreFieldValue>;
+  };
+}
+
+export async function listPublicChallengeSitemapEntries(limitCount = 200): Promise<SitemapEntry[]> {
+  const { projectId, firestoreDatabaseId } = getFirebaseIds();
+  const endpoint = `https://firestore.googleapis.com/v1/projects/${encodeURIComponent(
+    projectId
+  )}/databases/${encodeURIComponent(firestoreDatabaseId)}/documents:runQuery`;
+
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), 5000);
+
+  try {
+    const res = await fetch(endpoint, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+      signal: controller.signal,
+      body: JSON.stringify({
+        structuredQuery: {
+          from: [{ collectionId: 'challenges' }],
+          where: {
+            fieldFilter: {
+              field: { fieldPath: 'visibility' },
+              op: 'EQUAL',
+              value: { stringValue: 'public' },
+            },
+          },
+          limit: limitCount,
+        },
+      }),
+    });
+
+    if (!res.ok) return [];
+    const rows = (await res.json()) as RunQueryRow[];
+    const entries: SitemapEntry[] = [];
+    for (const row of rows) {
+      const fullName = row.document?.name;
+      if (!fullName) continue;
+      const fields = row.document?.fields;
+      if (!fields) continue;
+      if (strField(fields, 'visibility', '') !== 'public') continue;
+      if (strField(fields, 'type', 'battle') === 'secret_poll') continue;
+      const id = fullName.split('/').pop() || '';
+      if (!SAFE_ID_REGEX.test(id)) continue;
+      entries.push({
+        id,
+        updateTime: row.document?.updateTime || '',
+      });
+    }
+    return entries;
+  } catch {
+    return [];
+  } finally {
+    clearTimeout(timer);
+  }
+}
+

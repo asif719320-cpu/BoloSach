@@ -97,10 +97,36 @@ export const ChallengeArena: React.FC<ChallengeArenaProps> = ({
       challenge.type === 'secret_poll'
         ? `${challenge.title} | BoloSach`
         : `${challenge.title} — ${challenge.sideALabel} vs ${challenge.sideBLabel} | BoloSach`;
+
+    const canonicalEl = document.querySelector<HTMLLinkElement>('link[rel="canonical"]');
+    const prevCanonical = canonicalEl?.getAttribute('href') || 'https://bolosach.vercel.app/';
+    const robotsEl = document.querySelector<HTMLMetaElement>('meta[name="robots"]');
+    const prevRobots = robotsEl?.getAttribute('content') || 'index, follow, max-image-preview:large, max-snippet:-1';
+
+    const shouldIndex = challenge.visibility === 'public' && challenge.type !== 'secret_poll';
+    if (canonicalEl) {
+      canonicalEl.setAttribute('href', `${window.location.origin}/c/${encodeURIComponent(challenge.id)}`);
+    }
+    if (robotsEl) {
+      robotsEl.setAttribute(
+        'content',
+        shouldIndex ? 'index, follow, max-image-preview:large, max-snippet:-1' : 'noindex, nofollow'
+      );
+    }
+
     return () => {
       document.title = prevTitle;
+      if (canonicalEl) canonicalEl.setAttribute('href', prevCanonical);
+      if (robotsEl) robotsEl.setAttribute('content', prevRobots);
     };
-  }, [challenge?.id, challenge?.title, challenge?.sideALabel, challenge?.sideBLabel, challenge?.type]);
+  }, [
+    challenge?.id,
+    challenge?.title,
+    challenge?.sideALabel,
+    challenge?.sideBLabel,
+    challenge?.type,
+    challenge?.visibility,
+  ]);
 
   useEffect(() => {
     let active = true;

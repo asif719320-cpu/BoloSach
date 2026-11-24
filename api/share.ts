@@ -54,6 +54,13 @@ export default async function handler(req: ApiRequest, res: ApiResponse): Promis
     imageHeight = '630';
   }
 
+  const isIndexable = Boolean(
+    challenge && challenge.visibility === 'public' && challenge.type !== 'secret_poll'
+  );
+  const robotsContent = isIndexable
+    ? 'index, follow, max-image-preview:large, max-snippet:-1'
+    : 'noindex, nofollow';
+
   const html = `<!doctype html>
 <html lang="${challenge?.lang === 'ur' ? 'ur' : 'en'}">
   <head>
@@ -61,6 +68,8 @@ export default async function handler(req: ApiRequest, res: ApiResponse): Promis
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>${escapeHtml(title)}</title>
     <meta name="description" content="${escapeHtml(description)}" />
+    <meta name="robots" content="${robotsContent}" />
+    <link rel="canonical" href="${escapeHtml(shareUrl)}" />
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content="BoloSach" />
     <meta property="og:url" content="${escapeHtml(shareUrl)}" />
@@ -76,6 +85,23 @@ export default async function handler(req: ApiRequest, res: ApiResponse): Promis
     <meta name="twitter:title" content="${escapeHtml(title)}" />
     <meta name="twitter:description" content="${escapeHtml(description)}" />
     <meta name="twitter:image" content="${escapeHtml(imageUrl)}" />
+    ${
+      isIndexable
+        ? `<script type="application/ld+json">${JSON.stringify({
+            '@context': 'https://schema.org',
+            '@type': 'WebPage',
+            name: title,
+            description,
+            url: shareUrl,
+            image: imageUrl,
+            isPartOf: {
+              '@type': 'WebSite',
+              name: 'BoloSach',
+              url: origin,
+            },
+          }).replace(/</g, '\\u003c')}</script>`
+        : ''
+    }
     <script>
       if (!/bot|crawl|spider|facebookexternalhit|facebot|meta-externalagent|facebookcatalog|whatsapp|twitterbot|telegrambot|discordbot|linkedinbot|slackbot|pinterest|applebot|embedly|vkshare|snapchat/i.test(navigator.userAgent)) {
         window.location.replace(${JSON.stringify(spaTargetUrl)});

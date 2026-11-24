@@ -1,0 +1,17 @@
+User-agent: Googlebot
+Allow: /
+Allow: /c/
+Allow: /api/og
+Allow: /sitemap.xml
+Disallow: /api/share
+Disallow: /studio
+
+User-agent: *
+Allow: /
+Allow: /c/
+Allow: /api/og
+Allow: /sitemap.xml
+Disallow: /api/share
+Disallow: /studio
+
+Sitemap: https://bolosach.vercel.app/sitemap.xml
